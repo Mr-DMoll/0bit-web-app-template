@@ -24,13 +24,13 @@ function formatAction(action: string, meta: any): { label: string; detail: strin
 }
 
 const ROLE_COLOR: Record<string, string> = {
-  SUPER_ADMIN: "#ef4444", ADMIN: "#f59e0b", MANAGER: "#3b82f6", DEVELOPER: "#84cc16", CLIENT: "#a855f7",
+  SUPER_ADMIN: "var(--color-danger)", ADMIN: "var(--color-warning)", MANAGER: "var(--color-info)", DEVELOPER: "var(--color-accent)", CLIENT: "#a855f7",
 };
 
 const ACTION_COLOR: Record<string, string> = {
-  PROJECT_CREATED: "#84cc16", PROJECT_DELETED: "#ef4444",
-  MILESTONE_APPROVED: "#22c55e", INVOICE_STATUS_UPDATED: "#3b82f6",
-  DOCUMENT_CREATED: "#a855f7", PROJECT_STATUS_CHANGED: "#f59e0b",
+  PROJECT_CREATED: "var(--color-accent)", PROJECT_DELETED: "var(--color-danger)",
+  MILESTONE_APPROVED: "var(--color-success)", INVOICE_STATUS_UPDATED: "var(--color-info)",
+  DOCUMENT_CREATED: "#a855f7", PROJECT_STATUS_CHANGED: "var(--color-warning)",
 };
 
 function groupByDate(logs: any[]) {

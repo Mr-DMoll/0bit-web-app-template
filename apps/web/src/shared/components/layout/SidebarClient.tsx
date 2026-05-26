@@ -1,300 +1,193 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/shared/context/AuthContext";
-import { useTheme } from "@/shared/context/ThemeContext";
-import { type NavItem } from "@/shared/config/nav.config";
 import { NAV_CONFIG } from "@/shared/config/nav.config";
-
-
+import { BRAND } from "@/shared/config/branding.config";
 import {
   LayoutDashboard, FolderKanban, Users, UserCircle,
   FileText, Receipt, UsersRound, Activity, ScrollText,
-  Settings, LogOut, Sun, Moon, CheckSquare, Palette,
+  Settings, ChevronRight, ChevronLeft,
 } from "lucide-react";
 
-const ICON_MAP: Record<string, React.ComponentType<{ size?: number }>> = {
+const ICON_MAP: Record<string, React.ComponentType<{ size?: number; strokeWidth?: number }>> = {
   LayoutDashboard, FolderKanban, Users, UserCircle,
-  FileText, Receipt, UsersRound, Activity, ScrollText,
-  Settings, LogOut, CheckSquare, Palette,
+  FileText, Receipt, UsersRound, Activity, ScrollText, Settings,
 };
 
 interface Props {
-  navItems: NavItem[];
-  role: string;
+  isOpen:   boolean;
+  onToggle: () => void;
 }
 
-export default function SidebarClient() {
-  const [isHovered, setIsHovered] = useState(false);
-  const pathname  = usePathname();
-  const { logout, user } = useAuth();
+export default function SidebarClient({ isOpen, onToggle }: Props) {
+  const pathname = usePathname();
+  const { user } = useAuth();
 
   const role     = (user?.role ?? "") as keyof typeof NAV_CONFIG;
   const navItems = NAV_CONFIG[role] ?? [];
 
-  const { theme, toggle } = useTheme();
-
-  const displayName =
-    user?.displayName ||
-    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ||
-    user?.email ||
-    "";
-
-  const initials = displayName
-    .split(" ")
-    .map((w: string) => w[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2) || "O";
+  const w = isOpen ? "var(--sidebar-expanded)" : "var(--sidebar-collapsed)";
 
   return (
-    <aside
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      style={{
-        width:           isHovered ? "var(--sidebar-expanded)" : "var(--sidebar-collapsed)",
-        minWidth:        isHovered ? "var(--sidebar-expanded)" : "var(--sidebar-collapsed)",
-        transition:      "width var(--transition-base), min-width var(--transition-base)",
-        backgroundColor: "var(--color-sidebar-bg)",
-        borderRight:     "1px solid var(--color-sidebar-border)",
-        boxShadow:       "var(--color-sidebar-shadow)",
-        display:         "flex",
-        flexDirection:   "column",
-        height:          "100vh",
-        position:        "sticky",
-        top:             0,
-        overflow:        "hidden",
-        zIndex:          10,
-        flexShrink:      0,
-      }}
-    >
-      {/* ── Brand ──────────────────────────────────────────────────────────── */}
+    <aside style={{
+      width:           w,
+      minWidth:        w,
+      height:          "100vh",
+      backgroundColor: "var(--color-sidebar-bg)",
+      borderRight:     "1px solid var(--color-sidebar-border)",
+      display:         "flex",
+      flexDirection:   "column",
+      flexShrink:      0,
+      overflow:        "hidden",
+      transition:      "width var(--transition-base), min-width var(--transition-base)",
+      position:        "relative",
+      zIndex:          20,
+    }}>
+
+      {/* ── Logo ─────────────────────────────────────────────────────────────── */}
       <div style={{
-        padding:        "16px 12px",
+        height:         "var(--topnav-height)",
         display:        "flex",
         alignItems:     "center",
         gap:            "10px",
-        justifyContent: isHovered ? "flex-start" : "center",
+        padding:        "0 14px",
         borderBottom:   "1px solid var(--color-sidebar-border)",
         flexShrink:     0,
-        minHeight:      "64px",
+        overflow:       "hidden",
+        justifyContent: isOpen ? "flex-start" : "center",
       }}>
-        {/* Avatar / Logo mark */}
         <div style={{
-          width:           "34px",
-          height:          "34px",
-          borderRadius:    "9px",
-          background:      "linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))",
-          display:         "flex",
-          alignItems:      "center",
-          justifyContent:  "center",
-          flexShrink:      0,
-          fontSize:        "13px",
-          fontWeight:      800,
-          color:           "var(--color-accent-text)",
-          letterSpacing:   "-0.02em",
+          width:          "30px",
+          height:         "30px",
+          borderRadius:   "var(--radius-md)",
+          background:     "linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))",
+          display:        "flex",
+          alignItems:     "center",
+          justifyContent: "center",
+          fontSize:       "13px",
+          fontWeight:     800,
+          color:          "#fff",
+          flexShrink:     0,
+          letterSpacing:  "-0.02em",
         }}>
-          {initials}
+          {BRAND.logoMark}
         </div>
 
-        {isHovered && (
-          <div style={{ overflow: "hidden" }}>
-            <div style={{
-              fontSize:      "13px",
-              fontWeight:    700,
-              color:         "var(--color-text-primary)",
-              lineHeight:    1.2,
-              whiteSpace:    "nowrap",
-              overflow:      "hidden",
-              textOverflow:  "ellipsis",
-              maxWidth:      "130px",
-            }}>
-              {displayName || "O-Bit"}
-            </div>
-            <div style={{
-              fontSize:      "9px",
-              fontWeight:    700,
-              color:         "var(--color-accent-text)",
-              background:    "var(--color-accent)",
-              borderRadius:  "3px",
-              padding:       "1px 6px",
-              display:       "inline-block",
-              marginTop:     "4px",
-              textTransform: "uppercase",
-              letterSpacing: "0.06em",
-              whiteSpace:    "nowrap",
-            }}>
-              {role.replace(/_/g, " ")}
-            </div>
-          </div>
+        {isOpen && (
+          <span style={{
+            fontSize:      "15px",
+            fontWeight:    700,
+            color:         "var(--color-sidebar-text-active)",
+            whiteSpace:    "nowrap",
+            letterSpacing: "-0.02em",
+          }}>
+            {BRAND.name}
+          </span>
         )}
       </div>
 
-      {/* ── Nav ────────────────────────────────────────────────────────────── */}
+      {/* ── Nav items ────────────────────────────────────────────────────────── */}
       <nav style={{
         flex:          1,
-        padding:       "10px 8px",
+        padding:       "12px 8px",
         display:       "flex",
         flexDirection: "column",
-        gap:           "1px",
+        gap:           "2px",
         overflowY:     "auto",
         overflowX:     "hidden",
       }}>
         {navItems.map((item) => {
-          const Icon     = ICON_MAP[item.icon];    
-
-          const isActive =   pathname === item.href ||  (item.href.split("/").length > 2 && pathname.startsWith(item.href + "/"));
+          const Icon = ICON_MAP[item.icon];
+          const isActive =
+            pathname === item.href ||
+            (item.href.split("/").length > 2 && pathname.startsWith(item.href + "/"));
 
           return (
             <Link
               key={item.href}
               href={item.href}
-              title={!isHovered ? item.label : undefined}
-              className="sidebar-nav-link"
+              title={!isOpen ? item.label : undefined}
               style={{
                 display:        "flex",
                 alignItems:     "center",
                 gap:            "10px",
                 padding:        "9px 10px",
-                justifyContent: isHovered ? "flex-start" : "center",
-                borderRadius:   "var(--radius-sm)",
-                fontSize:       "13px",
+                borderRadius:   "var(--radius-md)",
+                fontSize:       "13.5px",
                 fontWeight:     isActive ? 600 : 400,
                 color:          isActive
                   ? "var(--color-sidebar-text-active)"
                   : "var(--color-sidebar-text)",
                 background:     isActive
-                  ? "var(--color-sidebar-item-active)"
+                  ? "var(--color-sidebar-item-active-bg)"
                   : "transparent",
-                transition:     "background var(--transition-fast), color var(--transition-fast)",
-                whiteSpace:     "nowrap",
                 textDecoration: "none",
+                whiteSpace:     "nowrap",
+                overflow:       "hidden",
+                justifyContent: isOpen ? "flex-start" : "center",
+                position:       "relative",
+                transition:     "background var(--transition-fast), color var(--transition-fast)",
               }}
+              className={`sidebar-nav-link${isActive ? " active" : ""}`}
             >
-              {Icon && <Icon size={16} />}
-              {isHovered && <span>{item.label}</span>}
+              {/* Active indicator bar */}
+              {isActive && (
+                <span style={{
+                  position:     "absolute",
+                  left:         0,
+                  top:          "20%",
+                  bottom:       "20%",
+                  width:        "3px",
+                  borderRadius: "0 3px 3px 0",
+                  background:   "var(--color-sidebar-indicator)",
+                }} />
+              )}
+              {Icon && (
+                <Icon
+                  size={17}
+                  strokeWidth={isActive ? 2.2 : 1.8}
+                />
+              )}
+              {isOpen && <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{item.label}</span>}
             </Link>
           );
         })}
       </nav>
 
-      {/* ── Bottom ─────────────────────────────────────────────────────────── */}
+      {/* ── Toggle button ────────────────────────────────────────────────────── */}
       <div style={{
-        padding:       "8px",
-        borderTop:     "1px solid var(--color-sidebar-border)",
-        display:       "flex",
-        flexDirection: "column",
-        gap:           "1px",
-        flexShrink:    0,
+        padding:     "12px 8px",
+        borderTop:   "1px solid var(--color-sidebar-border)",
+        flexShrink:  0,
       }}>
-        {/* Theme toggle */}
         <button
-          onClick={toggle}
-          title={!isHovered ? (theme === "dark" ? "Light mode" : "Dark mode") : undefined}
+          onClick={onToggle}
+          title={isOpen ? "Collapse sidebar" : "Expand sidebar"}
           style={{
             display:        "flex",
             alignItems:     "center",
+            justifyContent: isOpen ? "flex-start" : "center",
             gap:            "10px",
+            width:          "100%",
             padding:        "9px 10px",
-            justifyContent: isHovered ? "flex-start" : "center",
-            borderRadius:   "var(--radius-sm)",
-            fontSize:       "13px",
-            color:          "var(--color-sidebar-text)",
+            borderRadius:   "var(--radius-md)",
             background:     "transparent",
             border:         "none",
             cursor:         "pointer",
-            width:          "100%",
+            color:          "var(--color-sidebar-text)",
+            fontSize:       "13.5px",
+            fontWeight:     400,
             whiteSpace:     "nowrap",
             transition:     "background var(--transition-fast), color var(--transition-fast)",
           }}
           className="sidebar-nav-link"
         >
-          {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
-          {isHovered && (
-            <span>{theme === "dark" ? "Light mode" : "Dark mode"}</span>
-          )}
-        </button>
-
-        {/* Profile */}
-        <Link
-          href="/profile"
-          title={!isHovered ? "Profile" : undefined}
-          className="sidebar-nav-link"
-          style={{
-            display:        "flex",
-            alignItems:     "center",
-            gap:            "10px",
-            padding:        "9px 10px",
-            justifyContent: isHovered ? "flex-start" : "center",
-            borderRadius:   "var(--radius-sm)",
-            fontSize:       "13px",
-            color:          pathname === "/profile"
-              ? "var(--color-sidebar-text-active)"
-              : "var(--color-sidebar-text)",
-            background:     pathname === "/profile"
-              ? "var(--color-sidebar-item-active)"
-              : "transparent",
-            whiteSpace:     "nowrap",
-            textDecoration: "none",
-          }}
-        >
-          <UserCircle size={16} />
-          {isHovered && <span>Profile</span>}
-        </Link>
-
-        {/* Settings */}
-        <Link
-          href="/settings"
-          title={!isHovered ? "Settings" : undefined}
-          className="sidebar-nav-link"
-          style={{
-            display:        "flex",
-            alignItems:     "center",
-            gap:            "10px",
-            padding:        "9px 10px",
-            justifyContent: isHovered ? "flex-start" : "center",
-            borderRadius:   "var(--radius-sm)",
-            fontSize:       "13px",
-            color:          pathname === "/settings"
-              ? "var(--color-sidebar-text-active)"
-              : "var(--color-sidebar-text)",
-            background:     pathname === "/settings"
-              ? "var(--color-sidebar-item-active)"
-              : "transparent",
-            whiteSpace:     "nowrap",
-            textDecoration: "none",
-          }}
-        >
-          <Settings size={16} />
-          {isHovered && <span>Settings</span>}
-        </Link>
-
-        {/* Sign out */}
-        <button
-          onClick={logout}
-          title={!isHovered ? "Sign Out" : undefined}
-          className="sidebar-sign-out"
-          style={{
-            display:        "flex",
-            alignItems:     "center",
-            gap:            "10px",
-            padding:        "9px 10px",
-            justifyContent: isHovered ? "flex-start" : "center",
-            borderRadius:   "var(--radius-sm)",
-            fontSize:       "13px",
-            color:          "var(--color-sidebar-text)",
-            background:     "transparent",
-            border:         "none",
-            cursor:         "pointer",
-            width:          "100%",
-            whiteSpace:     "nowrap",
-            transition:     "background var(--transition-fast), color var(--transition-fast)",
-          }}
-        >
-          <LogOut size={16} />
-          {isHovered && <span>Sign Out</span>}
+          {isOpen
+            ? <><ChevronLeft size={17} strokeWidth={1.8} /><span>Collapse</span></>
+            : <ChevronRight size={17} strokeWidth={1.8} />
+          }
         </button>
       </div>
     </aside>

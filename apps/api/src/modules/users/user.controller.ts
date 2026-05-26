@@ -66,6 +66,7 @@ export const changePassword = catchAsync(async (req: Request, res: Response) => 
   await prisma.auditLog.create({
     data: { userId: user.id, action: "PASSWORD_CHANGED" },
   });
+  req.auditLogged = true;
 
   return res.status(HttpStatus.OK).json({ status: "success", message: "Password changed successfully" });
 });

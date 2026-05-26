@@ -32,7 +32,7 @@ function formatAction(action: string, meta: any): string {
 const STATUS_COLOR: Record<string, string> = {
   INTAKE: "#94a3b8", SCOPE_DRAFT: "#f59e0b", SCOPE_REVIEW: "#f59e0b",
   IN_DESIGN: "#3b82f6", DESIGN_REVIEW: "#3b82f6", CONTRACT_DRAFT: "#a855f7",
-  CONTRACT_REVIEW: "#a855f7", ACTIVE: "#84cc16", ON_HOLD: "#f59e0b",
+  CONTRACT_REVIEW: "#a855f7", ACTIVE: "var(--color-accent)", ON_HOLD: "#f59e0b",
   COMPLETE: "#22c55e", ARCHIVED: "#94a3b8",
 };
 const STATUS_LABEL: Record<string, string> = {
@@ -94,7 +94,7 @@ export function AdminOverviewPage() {
       {/* Stats */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "12px" }}>
         {[
-          { label: "Total Projects", value: s?.totalProjects ?? 0,  sub: `${s?.activeProjects ?? 0} active`,   color: "#84cc16",                      big: true  },
+          { label: "Total Projects", value: s?.totalProjects ?? 0,  sub: `${s?.activeProjects ?? 0} active`,   color: "var(--color-accent)",                      big: true  },
           { label: "Staff",          value: s?.totalStaff    ?? 0,  sub: "Managers & developers",              color: "var(--color-text-primary)",      big: true  },
           { label: "Clients",        value: s?.totalClients  ?? 0,  sub: "Active accounts",                    color: "#3b82f6",                      big: true  },
           { label: "Total Revenue",  value: `ZAR ${(s?.totalRevenue ?? 0).toLocaleString()}`, sub: "From paid invoices", color: "#22c55e", big: false },

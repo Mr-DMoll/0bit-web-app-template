@@ -3,7 +3,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { authService } from "@/features/auth/services/auth.service";
 import { useRouter } from "next/navigation";
 
-export type UserRole = "SUPER_ADMIN" | "ADMIN" | "MANAGER" | "DEVELOPER" | "CLIENT";
+export type UserRole = "SUPER_ADMIN" | "ADMIN" | "MANAGER" | "USER";
 
 export interface AuthUser {
   id: string;
@@ -30,8 +30,7 @@ const ROLE_ROUTES: Record<string, string> = {
   SUPER_ADMIN: "/super-admin",
   ADMIN:       "/admin",
   MANAGER:     "/manager",
-  DEVELOPER:   "/developer",
-  CLIENT:      "/client",
+  USER:        "/user",
 };
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {

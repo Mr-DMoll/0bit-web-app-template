@@ -1,8 +1,6 @@
 import apiClient from "@/api/client";
 import { endpoints } from "@/api/endpoints";
 
-export type StaffRole = "MANAGER" | "DEVELOPER" | "CLIENT";
-
 export interface TeamUser {
   id: string;
   email: string;
@@ -17,48 +15,38 @@ export interface TeamUser {
 }
 
 export const adminService = {
-  async getUsersByRole(role: StaffRole): Promise<{ data: { users: TeamUser[] } }> {
-    const { data } = await apiClient.get(endpoints.users.list, {
-      params: { role },
-    });
+  async getDashboard() {
+    const { data } = await apiClient.get(endpoints.admin.dashboard);
     return data;
   },
 
-  async getAllTeamUsers(): Promise<{ data: { users: TeamUser[] } }> {
-    const { data } = await apiClient.get(endpoints.users.list);
+  async getManagers(): Promise<{ data: { managers: TeamUser[] } }> {
+    const { data } = await apiClient.get(endpoints.admin.managers);
     return data;
   },
 
-  async provisionUser(email: string, role: StaffRole) {
-    const { data } = await apiClient.post(endpoints.users.provision, {
-      email,
-      role,
-    });
+  async inviteUser(email: string) {
+    const { data } = await apiClient.post(endpoints.admin.userInvite, { email });
     return data;
   },
 
-  async resendInvite(email: string) {
-    const { data } = await apiClient.post(endpoints.users.resendInvite, {
-      email,
-    });
+  async inviteManager(email: string) {
+    const { data } = await apiClient.post(endpoints.admin.managerInvite, { email });
     return data;
   },
 
-  async suspendUser(id: string) {
-    const { data } = await apiClient.patch(endpoints.users.status(id), {
-      status: "SUSPENDED",
-    });
+  async getUsers(params?: { role?: string; status?: string; page?: number }) {
+    const { data } = await apiClient.get(endpoints.admin.users, { params });
     return data;
   },
 
-  async activateUser(id: string) {
-    const { data } = await apiClient.patch(endpoints.users.status(id), {
-      status: "ACTIVE",
-    });
+  async updateUserStatus(id: string, status: string) {
+    const { data } = await apiClient.patch(endpoints.admin.userStatus(id), { status });
     return data;
   },
 
-  async deleteUser(id: string) {
-    await apiClient.delete(endpoints.users.delete(id));
+  async updateUserRole(id: string, role: string) {
+    const { data } = await apiClient.patch(endpoints.admin.userRole(id), { role });
+    return data;
   },
 };

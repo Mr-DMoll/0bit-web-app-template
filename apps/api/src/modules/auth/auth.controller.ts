@@ -34,8 +34,9 @@ export const login = catchAsync(async (req: Request, res: Response) => {
   setAuthCookie(res, token);
 
   await prisma.auditLog.create({
-    data: { userId: user.id, action: "LOGIN", ip: req.ip },
+    data: { userId: user.id, action: "LOGIN", ip: req.ip ?? null },
   });
+  req.auditLogged = true;
 
   return res.status(HttpStatus.OK).json({
     status: "success",
@@ -109,6 +110,7 @@ export const setPassword = catchAsync(async (req: Request, res: Response) => {
   await prisma.auditLog.create({
     data: { userId: user.id, action: "PASSWORD_SET" },
   });
+  req.auditLogged = true;
 
   return res.status(HttpStatus.OK).json({
     status:  "success",
@@ -218,6 +220,7 @@ export const register = catchAsync(async (req: Request, res: Response) => {
   await prisma.auditLog.create({
     data: { userId: user.id, action: "REGISTERED" },
   });
+  req.auditLogged = true;
 
   if (mode === "SELF_REGISTER_AUTO") {
     const token = authService.generateToken(user.id, user.role);

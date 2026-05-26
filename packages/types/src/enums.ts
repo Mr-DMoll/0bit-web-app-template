@@ -1,9 +1,10 @@
 export enum Role {
   SUPER_ADMIN = "SUPER_ADMIN",
   ADMIN       = "ADMIN",
+  MANAGER     = "MANAGER",
   USER        = "USER",
 }
-8778
+
 export enum AccountStatus {
   PENDING   = "PENDING",
   ACTIVE    = "ACTIVE",

@@ -10,11 +10,13 @@ export const endpoints = {
     me:                 "/auth/me",
     logout:             "/auth/logout",
     provision:          "/auth/provision",
+    resetPassword:      "/auth/reset-password",
   },
 
   // Users
   users: {
-    profile:      "/users/profile",
+    profile:      "/users/me",
+    password:     "/users/me/password",
     avatarPresign: "/users/profile/avatar/presign",
     list:         "/users",
     byId:         (id: string) => `/users/${id}`,
@@ -23,6 +25,27 @@ export const endpoints = {
     role:         (id: string) => `/users/${id}/role`,
     resendInvite: "/users/resend-invite",
     delete:       (id: string) => `/users/${id}`,
+  },
+
+  // Super Admin
+  superAdmin: {
+    stats:     "/super-admin/stats",
+    audit:     "/super-admin/audit",
+    admins:    "/super-admin/admins",
+    adminInvite: "/super-admin/admins/invite",
+    adminRemove: (id: string) => `/super-admin/admins/${id}`,
+    settings:  "/super-admin/settings",
+  },
+
+  // Admin
+  admin: {
+    dashboard:    "/admin/dashboard",
+    users:        "/admin/users",
+    userStatus:   (id: string) => `/admin/users/${id}/status`,
+    userRole:     (id: string) => `/admin/users/${id}/role`,
+    userInvite:    "/admin/users/invite",
+    managers:      "/admin/managers",
+    managerInvite: "/admin/managers/invite",
   },
 
   // Projects

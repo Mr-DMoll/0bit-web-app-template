@@ -53,6 +53,7 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   User: 'User',
   AuditLog: 'AuditLog',
+  Notification: 'Notification',
   SystemSetting: 'SystemSetting'
 } as const
 
@@ -88,6 +89,8 @@ export const UserScalarFieldEnum = {
   passwordResetToken: 'passwordResetToken',
   passwordResetExpires: 'passwordResetExpires',
   lastActiveAt: 'lastActiveAt',
+  googleId: 'googleId',
+  googleRefreshToken: 'googleRefreshToken',
   invitedById: 'invitedById',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -107,6 +110,19 @@ export const AuditLogScalarFieldEnum = {
 } as const
 
 export type AuditLogScalarFieldEnum = (typeof AuditLogScalarFieldEnum)[keyof typeof AuditLogScalarFieldEnum]
+
+
+export const NotificationScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  title: 'title',
+  body: 'body',
+  read: 'read',
+  link: 'link',
+  createdAt: 'createdAt'
+} as const
+
+export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum]
 
 
 export const SystemSettingScalarFieldEnum = {

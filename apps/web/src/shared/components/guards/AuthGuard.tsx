@@ -16,8 +16,21 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-5 h-5 border-2 border-slate-600 border-t-lime-400 rounded-full animate-spin" />
+      <div style={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "var(--color-bg)",
+      }}>
+        <div style={{
+          width: "20px",
+          height: "20px",
+          border: "2px solid var(--color-border)",
+          borderTopColor: "var(--color-accent)",
+          borderRadius: "50%",
+          animation: "spin 0.8s linear infinite",
+        }} />
       </div>
     );
   }

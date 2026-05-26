@@ -4,7 +4,7 @@ import { authorize } from "../../middleware/role.middleware.js";
 import { Role }      from "@repo/types";
 import {
   platformStats, listAdmins, inviteAdmin,
-  removeAdmin, getSettings, updateSetting,
+  removeAdmin, getSettings, updateSetting, auditLog,
 } from "./super-admin.controller.js";
 
 const router = Router();
@@ -85,6 +85,7 @@ router.delete("/admins/:id", removeAdmin);
  *     security:
  *       - cookieAuth: []
  */
+router.get("/audit",    auditLog);
 router.get("/settings", getSettings);
 
 /**

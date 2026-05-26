@@ -99,8 +99,10 @@ export function SettingsPage() {
     if (pwForm.next.length < 8) { setPwError("Password must be at least 8 characters."); return; }
     setPwSaving(true); setPwError(null);
     try {
-      // Password change endpoint — wire this when you build the reset flow
-      // await apiClient.patch("/auth/change-password", { currentPassword: pwForm.current, newPassword: pwForm.next });
+      await apiClient.patch(endpoints.users.password, {
+        currentPassword: pwForm.current,
+        newPassword:     pwForm.next,
+      });
       setPwSuccess(true);
       setPwForm({ current: "", next: "", confirm: "" });
       setTimeout(() => setPwSuccess(false), 3000);

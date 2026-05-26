@@ -26,7 +26,7 @@ export function RoleBadge({ role }: { role: string }) {
     ADMIN:     { background: "rgba(239,68,68,0.1)",   color: "#ef4444", border: "1px solid rgba(239,68,68,0.2)"   },
     MANAGER:   { background: "rgba(59,130,246,0.1)",  color: "#3b82f6", border: "1px solid rgba(59,130,246,0.2)"  },
     DEVELOPER: { background: "rgba(168,85,247,0.1)",  color: "#a855f7", border: "1px solid rgba(168,85,247,0.2)"  },
-    CLIENT:    { background: "rgba(132,204,22,0.1)",  color: "#84cc16", border: "1px solid rgba(132,204,22,0.2)"  },
+    CLIENT:    { background: "var(--color-accent-subtle)",  color: "var(--color-accent)", border: "1px solid var(--color-accent-border)"  },
   };
   return (
     <span style={{
@@ -47,7 +47,7 @@ export function Avatar({ initials }: { initials: string }) {
       width: "32px", height: "32px",
       borderRadius: "50%",
       background: "rgba(132,204,22,0.15)",
-      border: "1px solid rgba(132,204,22,0.3)",
+      border: "1px solid var(--color-accent-border)",
       display: "flex", alignItems: "center", justifyContent: "center",
       flexShrink: 0,
       fontSize: "11px", fontWeight: 700,

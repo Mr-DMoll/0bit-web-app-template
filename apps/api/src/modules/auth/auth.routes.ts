@@ -4,6 +4,7 @@ import {
   login, logout, getMe,
   setPassword, forgotPassword, resetPassword, register,
 } from "./auth.controller.js";
+import { googleRedirect, googleCallback } from "./google-oauth.controller.js";
 
 const router = Router();
 
@@ -85,5 +86,9 @@ router.post("/forgot-password", forgotPassword);
  *     summary: Reset password with token
  */
 router.post("/reset-password", resetPassword);
+
+// ── Google OAuth ──────────────────────────────────────────────────────────────
+router.get("/google",          googleRedirect);
+router.get("/google/callback", googleCallback);
 
 export default router;

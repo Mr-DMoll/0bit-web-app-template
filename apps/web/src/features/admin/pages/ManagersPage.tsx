@@ -1,87 +1,143 @@
 "use client";
 
-import { useState } from "react";
-import { useTeamUsers } from "../hooks/useTeamUsers";
-import type { TeamUser } from "../services/admin.service";
+import { useState, useEffect, useCallback } from "react";
+import { UserPlus } from "lucide-react";
+import { adminService, type TeamUser } from "../services/admin.service";
 
-// ─── Reusable components ───────────────────────────────────────────────────────
+// ─── Shared input style ────────────────────────────────────────────────────────
+const inputStyle: React.CSSProperties = {
+  width:        "100%",
+  padding:      "10px 14px",
+  background:   "var(--color-bg-subtle)",
+  border:       "1px solid var(--color-border)",
+  borderRadius: "var(--radius-md)",
+  fontSize:     "14px",
+  color:        "var(--color-text-primary)",
+  outline:      "none",
+  boxSizing:    "border-box",
+  transition:   "border-color var(--transition-fast), box-shadow var(--transition-fast)",
+};
 
+const focusBorder = (e: React.FocusEvent<HTMLInputElement>) => {
+  e.target.style.borderColor = "var(--color-accent)";
+  e.target.style.boxShadow   = "0 0 0 3px var(--color-accent-subtle)";
+};
+const blurBorder = (e: React.FocusEvent<HTMLInputElement>) => {
+  e.target.style.borderColor = "var(--color-border)";
+  e.target.style.boxShadow   = "none";
+};
+
+// ─── Status badge ──────────────────────────────────────────────────────────────
 function StatusBadge({ status }: { status: string }) {
-  const styles: Record<string, string> = {
-    ACTIVE:    "bg-green-500/10 text-green-400 border border-green-500/20",
-    PENDING:   "bg-yellow-500/10 text-yellow-400 border border-yellow-500/20",
-    SUSPENDED: "bg-red-500/10 text-red-400 border border-red-500/20",
+  const styles: Record<string, React.CSSProperties> = {
+    ACTIVE:    { background: "var(--color-success-subtle)", color: "var(--color-success)", border: "1px solid var(--color-success-subtle)" },
+    PENDING:   { background: "var(--color-warning-subtle)", color: "var(--color-warning)", border: "1px solid var(--color-warning-subtle)" },
+    SUSPENDED: { background: "var(--color-danger-subtle)",  color: "var(--color-danger)",  border: "1px solid var(--color-danger-subtle)"  },
   };
+  const s = styles[status] ?? styles.PENDING;
   return (
-    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${styles[status] ?? styles.PENDING}`}>
-      {status.charAt(0) + status.slice(1).toLowerCase()}
+    <span style={{
+      ...s,
+      display:       "inline-flex",
+      alignItems:    "center",
+      padding:       "3px 10px",
+      borderRadius:  "var(--radius-pill)",
+      fontSize:      "11px",
+      fontWeight:    700,
+      letterSpacing: "0.04em",
+      textTransform: "uppercase",
+    }}>
+      {status}
     </span>
   );
 }
 
-function AddUserModal({
-  role,
-  roleLabel,
-  onClose,
-  onSubmit,
-}: {
-  role: string;
-  roleLabel: string;
-  onClose: () => void;
+// ─── Invite modal ──────────────────────────────────────────────────────────────
+function InviteModal({ onClose, onSubmit }: {
+  onClose:  () => void;
   onSubmit: (email: string) => Promise<void>;
 }) {
-  const [email, setEmail] = useState("");
+  const [email,        setEmail]        = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error,        setError]        = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim()) return;
-    setIsSubmitting(true);
-    setError(null);
+    setIsSubmitting(true); setError(null);
     try {
       await onSubmit(email.trim().toLowerCase());
       onClose();
     } catch (err: any) {
-      setError(err?.response?.data?.message ?? `Failed to add ${roleLabel}.`);
+      setError(err?.response?.data?.message ?? "Failed to send invite.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative z-10 w-full max-w-md bg-slate-900 border border-slate-700 rounded-xl p-6 shadow-2xl">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold text-white">Add {roleLabel}</h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors">✕</button>
-        </div>
-        <form onSubmit={handleSubmit} className="space-y-4">
+    <div style={{ position: "fixed", inset: 0, zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)" }} onClick={onClose} />
+      <div style={{
+        position:     "relative",
+        zIndex:       10,
+        width:        "100%",
+        maxWidth:     "420px",
+        background:   "var(--color-card-bg)",
+        border:       "1px solid var(--color-border)",
+        borderRadius: "var(--radius-xl)",
+        padding:      "32px",
+        boxShadow:    "0 24px 64px rgba(0,0,0,0.18)",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1.5">Email address</label>
+            <h2 style={{ fontSize: "17px", fontWeight: 700, color: "var(--color-text-primary)", margin: 0 }}>Invite Manager</h2>
+            <p style={{ fontSize: "13px", color: "var(--color-text-muted)", marginTop: "4px" }}>
+              They'll receive an email to set their password.
+            </p>
+          </div>
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--color-text-muted)", fontSize: "18px", lineHeight: 1, padding: "4px" }}>✕</button>
+        </div>
+
+        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+          <div>
+            <label style={{ display: "block", fontSize: "11px", fontWeight: 700, color: "var(--color-text-muted)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+              Email address
+            </label>
             <input
-              type="email"
-              value={email}
+              type="email" value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder={`${roleLabel.toLowerCase()}@example.com`}
-              required
-              autoFocus
-              className="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-lime-500/50 focus:border-lime-500 transition-colors text-sm"
+              placeholder="manager@example.com"
+              required autoFocus
+              style={inputStyle}
+              onFocus={focusBorder} onBlur={blurBorder}
             />
           </div>
+
           {error && (
-            <p className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">{error}</p>
+            <div style={{ padding: "10px 14px", background: "var(--color-danger-subtle)", border: "1px solid var(--color-danger)", borderRadius: "var(--radius-md)", fontSize: "13px", color: "var(--color-danger)" }}>
+              {error}
+            </div>
           )}
-          <p className="text-xs text-slate-500">
-            An activation email will be sent. They will set their own password.
-          </p>
-          <div className="flex gap-3 pt-2">
-            <button type="button" onClick={onClose} className="flex-1 px-4 py-2.5 text-sm font-medium text-slate-300 bg-slate-800 border border-slate-600 rounded-lg hover:bg-slate-700 transition-colors">
+
+          <div style={{ display: "flex", gap: "10px", paddingTop: "4px" }}>
+            <button type="button" onClick={onClose} style={{
+              flex: 1, padding: "10px",
+              background: "var(--color-bg-subtle)", border: "1px solid var(--color-border)",
+              borderRadius: "var(--radius-md)", fontSize: "14px", fontWeight: 500,
+              color: "var(--color-text-secondary)", cursor: "pointer",
+            }}>
               Cancel
             </button>
-            <button type="submit" disabled={isSubmitting || !email.trim()} className="flex-1 px-4 py-2.5 text-sm font-semibold text-slate-900 bg-lime-400 rounded-lg hover:bg-lime-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
-              {isSubmitting ? "Sending..." : "Send Invite"}
+            <button type="submit" disabled={isSubmitting || !email.trim()} style={{
+              flex: 1, padding: "10px",
+              background: isSubmitting || !email.trim() ? "var(--color-accent-subtle)" : "var(--color-accent)",
+              border: "none", borderRadius: "var(--radius-md)",
+              fontSize: "14px", fontWeight: 600,
+              color: isSubmitting || !email.trim() ? "var(--color-accent)" : "var(--color-accent-text)",
+              cursor: isSubmitting || !email.trim() ? "not-allowed" : "pointer",
+            }}>
+              {isSubmitting ? "Sending…" : "Send Invite"}
             </button>
           </div>
         </form>
@@ -90,23 +146,47 @@ function AddUserModal({
   );
 }
 
-function ConfirmDialog({
-  title, message, confirmLabel, confirmClass, onConfirm, onCancel,
-}: {
+// ─── Confirm dialog ────────────────────────────────────────────────────────────
+function ConfirmDialog({ title, message, confirmLabel, danger, onConfirm, onCancel }: {
   title: string; message: string; confirmLabel: string;
-  confirmClass: string; onConfirm: () => Promise<void>; onCancel: () => void;
+  danger?: boolean; onConfirm: () => Promise<void>; onCancel: () => void;
 }) {
-  const [isLoading, setIsLoading] = useState(false);
+  const [busy, setBusy] = useState(false);
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onCancel} />
-      <div className="relative z-10 w-full max-w-sm bg-slate-900 border border-slate-700 rounded-xl p-6 shadow-2xl">
-        <h3 className="text-base font-semibold text-white mb-2">{title}</h3>
-        <p className="text-sm text-slate-400 mb-6">{message}</p>
-        <div className="flex gap-3">
-          <button onClick={onCancel} className="flex-1 px-4 py-2 text-sm font-medium text-slate-300 bg-slate-800 border border-slate-600 rounded-lg hover:bg-slate-700 transition-colors">Cancel</button>
-          <button onClick={async () => { setIsLoading(true); await onConfirm(); setIsLoading(false); }} disabled={isLoading} className={`flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-colors disabled:opacity-50 ${confirmClass}`}>
-            {isLoading ? "..." : confirmLabel}
+    <div style={{ position: "fixed", inset: 0, zIndex: 60, display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)" }} onClick={onCancel} />
+      <div style={{
+        position: "relative", zIndex: 10,
+        width: "100%", maxWidth: "360px",
+        background: "var(--color-card-bg)", border: "1px solid var(--color-border)",
+        borderRadius: "var(--radius-xl)", padding: "28px",
+        boxShadow: "0 24px 64px rgba(0,0,0,0.18)",
+      }}>
+        <h3 style={{ fontSize: "16px", fontWeight: 700, color: "var(--color-text-primary)", margin: "0 0 8px" }}>{title}</h3>
+        <p style={{ fontSize: "13px", color: "var(--color-text-muted)", margin: "0 0 24px", lineHeight: 1.6 }}>{message}</p>
+        <div style={{ display: "flex", gap: "10px" }}>
+          <button onClick={onCancel} style={{
+            flex: 1, padding: "10px",
+            background: "var(--color-bg-subtle)", border: "1px solid var(--color-border)",
+            borderRadius: "var(--radius-md)", fontSize: "13px", fontWeight: 500,
+            color: "var(--color-text-secondary)", cursor: "pointer",
+          }}>
+            Cancel
+          </button>
+          <button
+            onClick={async () => { setBusy(true); await onConfirm(); setBusy(false); }}
+            disabled={busy}
+            style={{
+              flex: 1, padding: "10px",
+              background: danger ? "var(--color-danger)" : "var(--color-accent)",
+              border: "none", borderRadius: "var(--radius-md)",
+              fontSize: "13px", fontWeight: 700,
+              color: "#fff",
+              cursor: busy ? "not-allowed" : "pointer",
+              opacity: busy ? 0.7 : 1,
+            }}
+          >
+            {busy ? "…" : confirmLabel}
           </button>
         </div>
       </div>
@@ -114,199 +194,233 @@ function ConfirmDialog({
   );
 }
 
-function UserRow({
-  user, onSuspend, onActivate, onDelete, onResend,
-}: {
-  user: TeamUser;
-  onSuspend: (id: string) => Promise<void>;
-  onActivate: (id: string) => Promise<void>;
-  onDelete: (id: string) => Promise<void>;
-  onResend: (email: string) => Promise<void>;
+// ─── Manager row ───────────────────────────────────────────────────────────────
+function ManagerRow({ manager, onStatusChange, onRefetch }: {
+  manager: TeamUser;
+  onStatusChange: (id: string, status: string) => Promise<void>;
+  onRefetch: () => void;
 }) {
-  const [confirm, setConfirm] = useState<"suspend" | "activate" | "delete" | null>(null);
-  const [isResending, setIsResending] = useState(false);
-  const [resendSuccess, setResendSuccess] = useState(false);
+  const [confirm, setConfirm] = useState<"suspend" | "activate" | null>(null);
 
-  const displayName =
-    user.displayName ||
-    [user.firstName, user.lastName].filter(Boolean).join(" ") ||
-    user.email;
-
-  const initials = displayName.split(" ").map((w: string) => w[0]).join("").toUpperCase().slice(0, 2);
-
-  const handleResend = async () => {
-    setIsResending(true);
-    try {
-      await onResend(user.email);
-      setResendSuccess(true);
-      setTimeout(() => setResendSuccess(false), 3000);
-    } finally {
-      setIsResending(false);
-    }
-  };
+  const name = manager.displayName ||
+    [manager.firstName, manager.lastName].filter(Boolean).join(" ") ||
+    manager.email;
+  const initials = name.split(" ").map((w: string) => w[0]).join("").toUpperCase().slice(0, 2);
 
   return (
     <>
-      <tr className="border-b border-slate-800 hover:bg-slate-800/30 transition-colors">
-        <td className="px-4 py-3.5">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-lime-500/20 border border-lime-500/30 flex items-center justify-center flex-shrink-0">
-              <span className="text-xs font-semibold text-lime-400">{initials}</span>
+      <tr
+        style={{ borderBottom: "1px solid var(--color-border)", transition: "background var(--transition-fast)" }}
+        onMouseEnter={(e) => { (e.currentTarget as HTMLTableRowElement).style.background = "var(--color-bg-subtle)"; }}
+        onMouseLeave={(e) => { (e.currentTarget as HTMLTableRowElement).style.background = "transparent"; }}
+      >
+        {/* Name + email */}
+        <td style={{ padding: "14px 20px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <div style={{
+              width: "34px", height: "34px", borderRadius: "var(--radius-pill)",
+              background: "var(--color-accent-subtle)", border: "1px solid var(--color-accent-border)",
+              display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+            }}>
+              <span style={{ fontSize: "12px", fontWeight: 700, color: "var(--color-accent)" }}>{initials}</span>
             </div>
             <div>
-              <p className="text-sm font-medium text-white leading-none">{displayName}</p>
-              {displayName !== user.email && <p className="text-xs text-slate-500 mt-0.5">{user.email}</p>}
+              <p style={{ fontSize: "13.5px", fontWeight: 600, color: "var(--color-text-primary)", margin: 0, lineHeight: 1.2 }}>{name}</p>
+              {name !== manager.email && (
+                <p style={{ fontSize: "12px", color: "var(--color-text-muted)", margin: "2px 0 0" }}>{manager.email}</p>
+              )}
             </div>
           </div>
         </td>
-        <td className="px-4 py-3.5"><StatusBadge status={user.accountStatus} /></td>
-        <td className="px-4 py-3.5 text-sm text-slate-400">
-          {new Date(user.createdAt).toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" })}
+
+        {/* Status */}
+        <td style={{ padding: "14px 20px" }}>
+          <StatusBadge status={manager.accountStatus} />
         </td>
-        <td className="px-4 py-3.5">
-          <div className="flex items-center gap-2">
-            {user.accountStatus === "PENDING" && (
-              <button onClick={handleResend} disabled={isResending} className="px-2.5 py-1 text-xs font-medium text-slate-300 bg-slate-700 border border-slate-600 rounded hover:bg-slate-600 transition-colors disabled:opacity-50">
-                {isResending ? "Sending..." : resendSuccess ? "✓ Sent" : "Resend invite"}
-              </button>
-            )}
-            {user.accountStatus === "ACTIVE" && (
-              <button onClick={() => setConfirm("suspend")} className="px-2.5 py-1 text-xs font-medium text-yellow-400 bg-yellow-500/10 border border-yellow-500/20 rounded hover:bg-yellow-500/20 transition-colors">
+
+        {/* Joined */}
+        <td style={{ padding: "14px 20px", fontSize: "13px", color: "var(--color-text-muted)", whiteSpace: "nowrap" }}>
+          {new Date(manager.createdAt).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}
+        </td>
+
+        {/* Actions */}
+        <td style={{ padding: "14px 20px" }}>
+          <div style={{ display: "flex", gap: "6px" }}>
+            {manager.accountStatus === "ACTIVE" && (
+              <button onClick={() => setConfirm("suspend")} style={{
+                padding: "4px 12px", fontSize: "12px", fontWeight: 600,
+                color: "var(--color-warning)", background: "var(--color-warning-subtle)",
+                border: "1px solid var(--color-warning-subtle)", borderRadius: "var(--radius-md)", cursor: "pointer",
+              }}>
                 Suspend
               </button>
             )}
-            {user.accountStatus === "SUSPENDED" && (
-              <button onClick={() => setConfirm("activate")} className="px-2.5 py-1 text-xs font-medium text-green-400 bg-green-500/10 border border-green-500/20 rounded hover:bg-green-500/20 transition-colors">
+            {manager.accountStatus === "SUSPENDED" && (
+              <button onClick={() => setConfirm("activate")} style={{
+                padding: "4px 12px", fontSize: "12px", fontWeight: 600,
+                color: "var(--color-accent)", background: "var(--color-accent-subtle)",
+                border: "1px solid var(--color-accent-border)", borderRadius: "var(--radius-md)", cursor: "pointer",
+              }}>
                 Activate
               </button>
             )}
-            <button onClick={() => setConfirm("delete")} className="px-2.5 py-1 text-xs font-medium text-red-400 bg-red-500/10 border border-red-500/20 rounded hover:bg-red-500/20 transition-colors">
-              Delete
-            </button>
+            {manager.accountStatus === "PENDING" && (
+              <span style={{ fontSize: "12px", color: "var(--color-text-muted)", fontStyle: "italic" }}>
+                Invite pending
+              </span>
+            )}
           </div>
         </td>
       </tr>
 
       {confirm === "suspend" && (
-        <ConfirmDialog title="Suspend user?" message={`${displayName} will lose access immediately.`} confirmLabel="Suspend" confirmClass="text-white bg-yellow-600 hover:bg-yellow-500" onConfirm={async () => { await onSuspend(user.id); setConfirm(null); }} onCancel={() => setConfirm(null)} />
+        <ConfirmDialog
+          title="Suspend manager?"
+          message={`${name} will lose access immediately.`}
+          confirmLabel="Suspend" danger
+          onConfirm={async () => { await onStatusChange(manager.id, "SUSPENDED"); setConfirm(null); onRefetch(); }}
+          onCancel={() => setConfirm(null)}
+        />
       )}
       {confirm === "activate" && (
-        <ConfirmDialog title="Reactivate user?" message={`${displayName} will regain full access.`} confirmLabel="Activate" confirmClass="text-slate-900 bg-lime-400 hover:bg-lime-300" onConfirm={async () => { await onActivate(user.id); setConfirm(null); }} onCancel={() => setConfirm(null)} />
-      )}
-      {confirm === "delete" && (
-        <ConfirmDialog title="Delete account?" message={`This will permanently delete ${displayName}'s account. This cannot be undone.`} confirmLabel="Delete" confirmClass="text-white bg-red-600 hover:bg-red-500" onConfirm={async () => { await onDelete(user.id); setConfirm(null); }} onCancel={() => setConfirm(null)} />
+        <ConfirmDialog
+          title="Reactivate manager?"
+          message={`${name} will regain full access.`}
+          confirmLabel="Activate"
+          onConfirm={async () => { await onStatusChange(manager.id, "ACTIVE"); setConfirm(null); onRefetch(); }}
+          onCancel={() => setConfirm(null)}
+        />
       )}
     </>
   );
 }
 
-// ─── USERS TABLE ──────────────────────────────────────────────────────────────
-function UsersTable({
-  roleKey, roleLabel, canAdd,
-}: {
-  roleKey: "MANAGER" | "DEVELOPER" | "CLIENT";
-  roleLabel: string;
-  canAdd: boolean;
-}) {
-  const { users, isLoading, error, provisionUser, suspendUser, activateUser, deleteUser, resendInvite } =
-    useTeamUsers(roleKey);
-  const [showModal, setShowModal] = useState(false);
+// ─── MANAGERS PAGE ─────────────────────────────────────────────────────────────
+export function ManagersPage() {
+  const [managers,   setManagers]   = useState<TeamUser[]>([]);
+  const [isLoading,  setIsLoading]  = useState(true);
+  const [error,      setError]      = useState<string | null>(null);
+  const [showInvite, setShowInvite] = useState(false);
 
-  const active    = users.filter((u) => u.accountStatus === "ACTIVE").length;
-  const pending   = users.filter((u) => u.accountStatus === "PENDING").length;
-  const suspended = users.filter((u) => u.accountStatus === "SUSPENDED").length;
+  const fetchManagers = useCallback(async () => {
+    try {
+      setIsLoading(true); setError(null);
+      const res = await adminService.getManagers();
+      setManagers(res.data?.managers ?? []);
+    } catch (err: any) {
+      setError(err?.response?.data?.message ?? "Failed to load managers.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchManagers(); }, [fetchManagers]);
+
+  const handleInvite        = async (email: string) => { await adminService.inviteManager(email); await fetchManagers(); };
+  const handleStatusChange  = async (id: string, status: string) => { await adminService.updateUserStatus(id, status); };
+
+  const active    = managers.filter((m) => m.accountStatus === "ACTIVE").length;
+  const pending   = managers.filter((m) => m.accountStatus === "PENDING").length;
+  const suspended = managers.filter((m) => m.accountStatus === "SUSPENDED").length;
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <h2 className="text-base font-semibold text-white">{roleLabel}s</h2>
-          <div className="flex gap-2 text-xs">
-            <span className="text-green-400">{active} active</span>
-            {pending > 0 && <span className="text-yellow-400">{pending} pending</span>}
-            {suspended > 0 && <span className="text-red-400">{suspended} suspended</span>}
-          </div>
+    <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
+        <div>
+          <h1 style={{ fontSize: "22px", fontWeight: 700, color: "var(--color-text-primary)", letterSpacing: "-0.02em" }}>Managers</h1>
+          <p style={{ fontSize: "14px", color: "var(--color-text-muted)", marginTop: "4px" }}>
+            Project managers who oversee client delivery
+          </p>
         </div>
-        {canAdd && (
-          <button
-            onClick={() => setShowModal(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold text-slate-900 bg-lime-400 rounded-lg hover:bg-lime-300 transition-colors"
-          >
-            <span>+</span> Add {roleLabel}
-          </button>
-        )}
+        <button
+          onClick={() => setShowInvite(true)}
+          style={{
+            display: "flex", alignItems: "center", gap: "8px",
+            padding: "10px 18px", background: "var(--color-accent)",
+            border: "none", borderRadius: "var(--radius-md)",
+            fontSize: "13.5px", fontWeight: 600, color: "var(--color-accent-text)", cursor: "pointer",
+            transition: "background var(--transition-fast)",
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = "var(--color-accent-hover)"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = "var(--color-accent)"; }}
+        >
+          <UserPlus size={15} strokeWidth={2} /> Invite Manager
+        </button>
       </div>
 
-      <div className="bg-slate-800/30 border border-slate-700/50 rounded-xl overflow-hidden">
+      {/* Stat cards */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" }}>
+        {[
+          { label: "Active",    value: active,    color: "var(--color-success)", subtle: "var(--color-success-subtle)" },
+          { label: "Pending",   value: pending,   color: "var(--color-warning)", subtle: "var(--color-warning-subtle)" },
+          { label: "Suspended", value: suspended, color: "var(--color-danger)",  subtle: "var(--color-danger-subtle)"  },
+        ].map(({ label, value, color, subtle }) => (
+          <div key={label} style={{
+            padding: "20px 24px",
+            background: "var(--color-card-bg)",
+            border: "1px solid var(--color-card-border)",
+            borderRadius: "var(--radius-xl)",
+            boxShadow: "var(--color-card-shadow)",
+          }}>
+            <div style={{ fontSize: "28px", fontWeight: 800, color, lineHeight: 1, letterSpacing: "-0.02em" }}>{value}</div>
+            <div style={{ fontSize: "12px", color: "var(--color-text-muted)", marginTop: "6px" }}>{label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Table */}
+      <div style={{
+        background: "var(--color-card-bg)",
+        border: "1px solid var(--color-card-border)",
+        borderRadius: "var(--radius-xl)",
+        boxShadow: "var(--color-card-shadow)",
+        overflow: "hidden",
+      }}>
         {isLoading ? (
-          <div className="flex items-center justify-center py-10">
-            <div className="flex items-center gap-3 text-slate-400">
-              <div className="w-4 h-4 border-2 border-slate-600 border-t-lime-400 rounded-full animate-spin" />
-              <span className="text-sm">Loading...</span>
-            </div>
-          </div>
+          <div style={{ padding: "60px", textAlign: "center", color: "var(--color-text-muted)", fontSize: "14px" }}>Loading…</div>
         ) : error ? (
-          <div className="flex items-center justify-center py-10">
-            <p className="text-sm text-red-400">{error}</p>
-          </div>
-        ) : users.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-10 text-center">
-            <p className="text-sm font-medium text-white mb-1">No {roleLabel.toLowerCase()}s yet</p>
-            {canAdd && (
-              <button onClick={() => setShowModal(true)} className="mt-3 px-4 py-2 text-sm font-semibold text-slate-900 bg-lime-400 rounded-lg hover:bg-lime-300 transition-colors">
-                Add first {roleLabel.toLowerCase()}
-              </button>
-            )}
+          <div style={{ padding: "60px", textAlign: "center", color: "var(--color-danger)", fontSize: "14px" }}>{error}</div>
+        ) : managers.length === 0 ? (
+          <div style={{ padding: "60px", textAlign: "center" }}>
+            <p style={{ fontSize: "15px", fontWeight: 600, color: "var(--color-text-primary)", marginBottom: "8px" }}>No managers yet</p>
+            <p style={{ fontSize: "13px", color: "var(--color-text-muted)", marginBottom: "20px" }}>Invite a manager to get started</p>
+            <button onClick={() => setShowInvite(true)} style={{
+              padding: "10px 20px", background: "var(--color-accent)", border: "none",
+              borderRadius: "var(--radius-md)", fontSize: "13.5px", fontWeight: 600,
+              color: "var(--color-accent-text)", cursor: "pointer",
+            }}>
+              Invite first manager
+            </button>
           </div>
         ) : (
-          <table className="w-full">
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
-              <tr className="border-b border-slate-700/50">
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">{roleLabel}</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Status</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Added</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Actions</th>
+              <tr style={{ borderBottom: "1px solid var(--color-border)" }}>
+                {["Manager", "Status", "Joined", "Actions"].map((h) => (
+                  <th key={h} style={{
+                    padding: "12px 20px", textAlign: "left",
+                    fontSize: "11px", fontWeight: 700,
+                    color: "var(--color-text-muted)",
+                    textTransform: "uppercase", letterSpacing: "0.06em",
+                    background: "var(--color-bg-subtle)",
+                  }}>
+                    {h}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
-              {users.map((user) => (
-                <UserRow
-                  key={user.id}
-                  user={user}
-                  onSuspend={suspendUser}
-                  onActivate={activateUser}
-                  onDelete={deleteUser}
-                  onResend={resendInvite}
-                />
+              {managers.map((m) => (
+                <ManagerRow key={m.id} manager={m} onStatusChange={handleStatusChange} onRefetch={fetchManagers} />
               ))}
             </tbody>
           </table>
         )}
       </div>
 
-      {showModal && (
-        <AddUserModal
-          role={roleKey}
-          roleLabel={roleLabel}
-          onClose={() => setShowModal(false)}
-          onSubmit={(email) => provisionUser(email, roleKey)}
-        />
-      )}
-    </div>
-  );
-}
-
-// ─── MANAGERS PAGE ────────────────────────────────────────────────────────────
-export function ManagersPage() {
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-semibold text-white">Managers</h1>
-        <p className="text-sm text-slate-400 mt-0.5">
-          Manage project managers who oversee client delivery
-        </p>
-      </div>
-      <UsersTable roleKey="MANAGER" roleLabel="Manager" canAdd={true} />
+      {showInvite && <InviteModal onClose={() => setShowInvite(false)} onSubmit={handleInvite} />}
     </div>
   );
 }

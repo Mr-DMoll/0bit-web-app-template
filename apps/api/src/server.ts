@@ -4,12 +4,16 @@ import helmet from "helmet";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
 
-import { globalErrorHandler } from "./middleware/error.middleware.js";
-import systemRoutes from "./modules/system/system.routes.js";
-import authRoutes   from "./modules/auth/auth.routes.js";
-import userRoutes   from "./modules/users/user.routes.js";
-import adminRoutes  from "./modules/admin/admin.routes.js";
-import superAdminRoutes from "./modules/super-admin/super-admin.routes.js";
+import { globalErrorHandler }  from "./middleware/error.middleware.js";
+import { authRateLimiter }     from "./middleware/security.middleware.js";
+import { auditLog }            from "./middleware/audit.middleware.js";
+import { maintenanceMode }     from "./middleware/maintenance.middleware.js";
+import systemRoutes       from "./modules/system/system.routes.js";
+import authRoutes         from "./modules/auth/auth.routes.js";
+import userRoutes         from "./modules/users/user.routes.js";
+import adminRoutes        from "./modules/admin/admin.routes.js";
+import superAdminRoutes   from "./modules/super-admin/super-admin.routes.js";
+import notificationRoutes from "./modules/notifications/notification.routes.js";
 
 const app: Express = express();
 const isProduction = process.env.NODE_ENV === "production";
@@ -49,16 +53,21 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// ── 4. ROUTES ─────────────────────────────────────────────────────────────────
+// ── 4. CROSS-CUTTING MIDDLEWARE ───────────────────────────────────────────────
+app.use(maintenanceMode);
+app.use(auditLog);
+
+// ── 5. ROUTES ─────────────────────────────────────────────────────────────────
 const API = "/api/v1";
 
-app.use(`${API}/system`,      systemRoutes);
-app.use(`${API}/auth`,        authRoutes);
-app.use(`${API}/users`,       userRoutes);
-app.use(`${API}/admin`,       adminRoutes);
-app.use(`${API}/super-admin`, superAdminRoutes);
+app.use(`${API}/system`,        systemRoutes);
+app.use(`${API}/auth`,          authRateLimiter, authRoutes);
+app.use(`${API}/users`,         userRoutes);
+app.use(`${API}/admin`,         adminRoutes);
+app.use(`${API}/super-admin`,   superAdminRoutes);
+app.use(`${API}/notifications`, notificationRoutes);
 
-// ── 5. 404 ────────────────────────────────────────────────────────────────────
+// ── 6. 404 ────────────────────────────────────────────────────────────────────
 app.use((req: Request, res: Response) => {
   res.status(404).json({
     status:  "fail",
@@ -66,10 +75,10 @@ app.use((req: Request, res: Response) => {
   });
 });
 
-// ── 6. ERROR HANDLER ──────────────────────────────────────────────────────────
+// ── 7. ERROR HANDLER ──────────────────────────────────────────────────────────
 app.use(globalErrorHandler);
 
-// ── 7. START ──────────────────────────────────────────────────────────────────
+// ── 8. START ──────────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`\n─────────────────────────────────────────`);

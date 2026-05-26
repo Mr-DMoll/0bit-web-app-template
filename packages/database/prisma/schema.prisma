@@ -10,6 +10,7 @@ datasource db {
 enum Role {
   SUPER_ADMIN
   ADMIN
+  MANAGER
   USER
 }
 
@@ -44,16 +45,21 @@ model User {
   passwordResetExpires DateTime?
   lastActiveAt         DateTime?
 
+  googleId           String?   @unique
+  googleRefreshToken String?
+
   invitedById String?
   invitedBy   User?   @relation("UserInvites", fields: [invitedById], references: [id])
   invitees    User[]  @relation("UserInvites")
-  auditLogs   AuditLog[]
+  auditLogs     AuditLog[]
+  notifications Notification[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([email])
   @@index([role])
+  @@index([googleId])
 }
 
 model AuditLog {
@@ -68,6 +74,20 @@ model AuditLog {
 
   @@index([userId])
   @@index([createdAt])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  body      String
+  read      Boolean  @default(false)
+  link      String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([userId, read])
 }
 
 model SystemSetting {

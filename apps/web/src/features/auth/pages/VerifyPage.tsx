@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { authService } from "@/features/auth/services/auth.service";
+import { BRAND } from "@/shared/config/branding.config";
 
 export default function VerifyPage() {
   const router       = useRouter();
@@ -89,9 +90,9 @@ export default function VerifyPage() {
         <div style={{ textAlign: "center", marginBottom: "40px" }}>
           <div style={{
             width: "48px", height: "48px", borderRadius: "12px",
-            background: "linear-gradient(135deg, #84cc16, #65a30d)",
+            background: "linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))",
             display: "flex", alignItems: "center", justifyContent: "center",
-            margin: "0 auto 16px", fontSize: "22px", fontWeight: 900, color: "#0f172a",
+            margin: "0 auto 16px", fontSize: "22px", fontWeight: 900, color: "var(--color-accent-text)",
           }}>O</div>
           <h1 style={{ fontSize: "24px", fontWeight: 700, color: "#fff", marginBottom: "6px" }}>
             Verify your email
@@ -120,14 +121,14 @@ export default function VerifyPage() {
                 style={{
                   width: "46px", height: "54px",
                   background: "rgba(255,255,255,0.06)",
-                  border: `1px solid ${digit ? "#84cc16" : "rgba(255,255,255,0.1)"}`,
+                  border: `1px solid ${digit ? "var(--color-accent)" : "rgba(255,255,255,0.1)"}`,
                   borderRadius: "10px",
                   fontSize: "22px", fontWeight: 700, color: "#fff",
                   textAlign: "center", outline: "none",
                   transition: "border-color 0.15s, box-shadow 0.15s",
                   boxShadow: digit ? "0 0 0 3px rgba(132,204,22,0.12)" : "none",
                 }}
-                onFocus={(e) => { e.target.style.borderColor = "#84cc16"; e.target.style.boxShadow = "0 0 0 3px rgba(132,204,22,0.12)"; }}
+                onFocus={(e) => { e.target.style.borderColor = "var(--color-accent)"; e.target.style.boxShadow = "0 0 0 3px rgba(132,204,22,0.12)"; }}
                 onBlur={(e)  => {
                   if (!digit) {
                     e.target.style.borderColor = "rgba(255,255,255,0.1)";
@@ -147,7 +148,7 @@ export default function VerifyPage() {
 
           {/* Resend message */}
           {resendMsg && (
-            <div style={{ padding: "10px 14px", background: "rgba(132,204,22,0.08)", border: "1px solid rgba(132,204,22,0.2)", borderRadius: "8px", fontSize: "13px", color: "#84cc16", textAlign: "center" }}>
+            <div style={{ padding: "10px 14px", background: "rgba(132,204,22,0.08)", border: "1px solid var(--color-accent-border)", borderRadius: "8px", fontSize: "13px", color: "var(--color-accent)", textAlign: "center" }}>
               {resendMsg}
             </div>
           )}
@@ -158,9 +159,9 @@ export default function VerifyPage() {
             disabled={code.some((d) => !d) || isSubmitting}
             style={{
               width: "100%", padding: "12px",
-              background: code.every((d) => d) && !isSubmitting ? "#84cc16" : "rgba(132,204,22,0.3)",
+              background: code.every((d) => d) && !isSubmitting ? "var(--color-accent)" : "var(--color-accent-subtle)",
               border: "none", borderRadius: "8px", fontSize: "14px", fontWeight: 700,
-              color: "#0f172a", cursor: code.every((d) => d) && !isSubmitting ? "pointer" : "not-allowed",
+              color: "var(--color-accent-text)", cursor: code.every((d) => d) && !isSubmitting ? "pointer" : "not-allowed",
             }}
           >
             {isSubmitting ? "Verifying..." : "Verify email"}
@@ -172,7 +173,7 @@ export default function VerifyPage() {
             <button
               onClick={handleResend}
               disabled={isResending}
-              style={{ background: "none", border: "none", cursor: "pointer", fontSize: "13px", color: "#84cc16", fontWeight: 500 }}
+              style={{ background: "none", border: "none", cursor: "pointer", fontSize: "13px", color: "var(--color-accent)", fontWeight: 500 }}
             >
               {isResending ? "Sending..." : "Resend"}
             </button>
@@ -180,7 +181,7 @@ export default function VerifyPage() {
         </div>
 
         <p style={{ textAlign: "center", marginTop: "24px", fontSize: "13px", color: "rgba(255,255,255,0.3)" }}>
-          O-Bit Agency Platform
+          {BRAND.name}
         </p>
       </div>
     </div>

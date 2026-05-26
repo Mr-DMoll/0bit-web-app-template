@@ -7,11 +7,9 @@ import { HttpStatus } from "@repo/types";
  * Limits each IP to 10 attempts per 15-minute window.
  */
 export const authRateLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 1000,
-  message: {
-    message: "Too many login attempts, please try again after 15 minutes.",
-  },
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  message: { status: "fail", message: "Too many attempts from this IP, please try again in 15 minutes." },
   standardHeaders: true,
   legacyHeaders: false,
 });

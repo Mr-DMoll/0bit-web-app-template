@@ -1,10 +1,10 @@
 import { Suspense } from "react";
-import SetPasswordPage from "@/features/auth/pages/SetPasswordPage";
+import ResetPasswordPage from "@/features/auth/pages/ResetPasswordPage";
 
-export default function ResetPasswordPage() {
+export default function ResetPasswordRoute() {
   return (
     <Suspense>
-      <SetPasswordPage />
+      <ResetPasswordPage />
     </Suspense>
   );
 }

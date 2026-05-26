@@ -13,9 +13,9 @@ function initials(u: any) {
 }
 
 const STATUS_COLOR: Record<string, string> = {
-  ACTIVE: "#84cc16", INTAKE: "#94a3b8", SCOPE_DRAFT: "#f59e0b",
-  IN_DESIGN: "#3b82f6", CONTRACT_DRAFT: "#a855f7",
-  COMPLETE: "#22c55e", ON_HOLD: "#f59e0b", ARCHIVED: "#94a3b8",
+  ACTIVE: "var(--color-accent)", INTAKE: "var(--color-text-muted)", SCOPE_DRAFT: "var(--color-warning)",
+  IN_DESIGN: "var(--color-info)", CONTRACT_DRAFT: "#a855f7",
+  COMPLETE: "var(--color-success)", ON_HOLD: "var(--color-warning)", ARCHIVED: "var(--color-text-muted)",
 };
 
 export function AdminClientsPage() {

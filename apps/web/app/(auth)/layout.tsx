@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { BRAND } from "@/shared/config/branding.config";
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -18,12 +19,12 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         <Link href="/" style={{ display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}>
           <div style={{
             width: "28px", height: "28px", borderRadius: "7px",
-            background: "linear-gradient(135deg, #84cc16, #65a30d)",
+            background: "linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))",
             display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: "14px", fontWeight: 900, color: "#0a0f1a",
-          }}>K</div>
+            fontSize: "14px", fontWeight: 900, color: "var(--color-accent-text)",
+          }}>{BRAND.logoMark}</div>
           <span style={{ fontSize: "16px", fontWeight: 800, color: "#fff", letterSpacing: "-0.02em" }}>
-            Koveral
+            {BRAND.name}
           </span>
         </Link>
 

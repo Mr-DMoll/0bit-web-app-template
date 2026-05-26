@@ -1,16 +1,24 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/shared/context/AuthContext";
+import { BRAND } from "@/shared/config/branding.config";
 
 const ROLE_ROUTES: Record<string, string> = {
   SUPER_ADMIN: "/super-admin",
   ADMIN:       "/admin",
   MANAGER:     "/manager",
-  DEVELOPER:   "/developer",
-  CLIENT:      "/client",
+  USER:        "/user",
+};
+
+const OAUTH_ERRORS: Record<string, string> = {
+  google_denied:  "Google sign-in was cancelled.",
+  invite_only:    "Registration is by invitation only. Please contact an admin.",
+  suspended:      "Your account has been suspended. Please contact support.",
+  not_found:      "No account found. Please request an invite.",
+  oauth_failed:   "Google sign-in failed. Please try again.",
 };
 
 const inputStyle: React.CSSProperties = {
@@ -30,6 +38,7 @@ const labelStyle: React.CSSProperties = {
 
 export default function LoginPage() {
   const router              = useRouter();
+  const searchParams        = useSearchParams();
   const { login, user, isLoading } = useAuth();
 
   const [email,    setEmail]    = useState("");
@@ -45,7 +54,11 @@ export default function LoginPage() {
     }
   }, [user, isLoading, router]);
 
- 
+  // Surface OAuth redirect errors
+  useEffect(() => {
+    const err = searchParams.get("error");
+    if (err && OAUTH_ERRORS[err]) setError(OAUTH_ERRORS[err]);
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,6 +72,10 @@ export default function LoginPage() {
     }
   };
 
+  const handleGoogleSignIn = () => {
+    window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/google`;
+  };
+
   return (
     <div style={{
       minHeight: "calc(100vh - 57px)",
@@ -70,10 +87,10 @@ export default function LoginPage() {
         <div style={{ textAlign: "center", marginBottom: "40px" }}>
           <div style={{
             width: "48px", height: "48px", borderRadius: "12px",
-            background: "linear-gradient(135deg, #84cc16, #65a30d)",
+            background: "linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))",
             display: "flex", alignItems: "center", justifyContent: "center",
             margin: "0 auto 16px", fontSize: "22px", fontWeight: 900,
-            color: "#0f172a",
+            color: "var(--color-accent-text)",
           }}>
             O
           </div>
@@ -81,7 +98,7 @@ export default function LoginPage() {
             Welcome back
           </h1>
           <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.4)" }}>
-            Sign in to your O-Bit account
+            Sign in to your {BRAND.name} account
           </p>
         </div>
 
@@ -91,6 +108,50 @@ export default function LoginPage() {
           border: "1px solid rgba(255,255,255,0.08)",
           borderRadius: "16px", padding: "32px",
         }}>
+          {/* Google OAuth */}
+          <button
+            type="button"
+            onClick={handleGoogleSignIn}
+            style={{
+              width: "100%", padding: "11px 16px",
+              background: "rgba(255,255,255,0.06)",
+              border: "1px solid rgba(255,255,255,0.12)",
+              borderRadius: "8px", fontSize: "14px", fontWeight: 600,
+              color: "#fff", cursor: "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center", gap: "10px",
+              transition: "background 0.15s, border-color 0.15s",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "rgba(255,255,255,0.1)";
+              e.currentTarget.style.borderColor = "rgba(255,255,255,0.2)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "rgba(255,255,255,0.06)";
+              e.currentTarget.style.borderColor = "rgba(255,255,255,0.12)";
+            }}
+          >
+            {/* Google logo SVG */}
+            <svg width="18" height="18" viewBox="0 0 18 18">
+              <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/>
+              <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/>
+              <path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/>
+              <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/>
+            </svg>
+            Continue with Google
+          </button>
+
+          {/* Divider */}
+          <div style={{
+            display: "flex", alignItems: "center", gap: "12px",
+            margin: "20px 0",
+          }}>
+            <div style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.08)" }} />
+            <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.25)", fontWeight: 500 }}>
+              or sign in with email
+            </span>
+            <div style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.08)" }} />
+          </div>
+
           <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
             {/* Email */}
             <div>
@@ -101,9 +162,8 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@company.com"
                 required
-                autoFocus
                 style={inputStyle}
-                onFocus={(e) => { e.target.style.borderColor = "#84cc16"; e.target.style.boxShadow = "0 0 0 3px rgba(132,204,22,0.12)"; }}
+                onFocus={(e) => { e.target.style.borderColor = "var(--color-accent)"; e.target.style.boxShadow = "0 0 0 3px rgba(132,204,22,0.12)"; }}
                 onBlur={(e)  => { e.target.style.borderColor = "rgba(255,255,255,0.1)"; e.target.style.boxShadow = "none"; }}
               />
             </div>
@@ -112,7 +172,7 @@ export default function LoginPage() {
             <div>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "6px" }}>
                 <label style={{ ...labelStyle, marginBottom: 0 }}>Password</label>
-                <Link href="/forgot-password" style={{ fontSize: "12px", color: "#84cc16", textDecoration: "none" }}>
+                <Link href="/forgot-password" style={{ fontSize: "12px", color: "var(--color-accent)", textDecoration: "none" }}>
                   Forgot password?
                 </Link>
               </div>
@@ -124,7 +184,7 @@ export default function LoginPage() {
                   placeholder="Your password"
                   required
                   style={{ ...inputStyle, paddingRight: "52px" }}
-                  onFocus={(e) => { e.target.style.borderColor = "#84cc16"; e.target.style.boxShadow = "0 0 0 3px rgba(132,204,22,0.12)"; }}
+                  onFocus={(e) => { e.target.style.borderColor = "var(--color-accent)"; e.target.style.boxShadow = "0 0 0 3px rgba(132,204,22,0.12)"; }}
                   onBlur={(e)  => { e.target.style.borderColor = "rgba(255,255,255,0.1)"; e.target.style.boxShadow = "none"; }}
                 />
                 <button
@@ -133,8 +193,7 @@ export default function LoginPage() {
                   style={{
                     position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)",
                     background: "none", border: "none", cursor: "pointer",
-                    fontSize: "12px", color: "rgba(255,255,255,0.4)",
-                    fontWeight: 500,
+                    fontSize: "12px", color: "rgba(255,255,255,0.4)", fontWeight: 500,
                   }}
                 >
                   {showPw ? "Hide" : "Show"}
@@ -160,9 +219,9 @@ export default function LoginPage() {
               disabled={loading}
               style={{
                 width: "100%", padding: "12px",
-                background: loading ? "rgba(132,204,22,0.5)" : "#84cc16",
+                background: loading ? "var(--color-accent-subtle)" : "var(--color-accent)",
                 border: "none", borderRadius: "8px",
-                fontSize: "14px", fontWeight: 700, color: "#0f172a",
+                fontSize: "14px", fontWeight: 700, color: "var(--color-accent-text)",
                 cursor: loading ? "not-allowed" : "pointer",
                 transition: "opacity 0.15s",
               }}
@@ -172,9 +231,12 @@ export default function LoginPage() {
           </form>
         </div>
 
-        {/* Footer */}
-        <p style={{ textAlign: "center", marginTop: "24px", fontSize: "13px", color: "rgba(255,255,255,0.3)" }}>
-          O-Bit Agency Platform
+        {/* Register link */}
+        <p style={{ textAlign: "center", marginTop: "20px", fontSize: "13px", color: "rgba(255,255,255,0.3)" }}>
+          Don't have an account?{" "}
+          <Link href="/register" style={{ color: "var(--color-accent)", textDecoration: "none" }}>
+            Sign up
+          </Link>
         </p>
       </div>
     </div>

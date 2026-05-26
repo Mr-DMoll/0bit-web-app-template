@@ -52,6 +52,11 @@ export const authService = {
     return response;
   },
 
+  async resetPassword(data: { token: string; email: string; password: string }) {
+    const { data: response } = await apiClient.post(endpoints.auth.resetPassword, data);
+    return response;
+  },
+
   async resendVerification(email: string) {
     const { data } = await apiClient.post(endpoints.auth.resendVerification, { email });
     return data;

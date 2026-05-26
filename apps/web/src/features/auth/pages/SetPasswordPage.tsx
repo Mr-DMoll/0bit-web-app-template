@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { authService } from "@/features/auth/services/auth.service";
+import { BRAND } from "@/shared/config/branding.config";
 
 const inputStyle: React.CSSProperties = {
   width: "100%", padding: "11px 14px",
@@ -28,7 +29,7 @@ function PasswordStrength({ password }: { password: string }) {
     { label: "Number",           pass: /[0-9]/.test(password)       },
   ];
   const passed = checks.filter((c) => c.pass).length;
-  const barColor = passed <= 1 ? "#ef4444" : passed === 2 ? "#f59e0b" : passed === 3 ? "#f59e0b" : "#84cc16";
+  const barColor = passed <= 1 ? "#ef4444" : passed === 2 ? "#f59e0b" : passed === 3 ? "#f59e0b" : "var(--color-accent)";
 
   if (!password) return null;
 
@@ -48,7 +49,7 @@ function PasswordStrength({ password }: { password: string }) {
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px" }}>
         {checks.map(({ label, pass }) => (
           <div key={label} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-            <span style={{ fontSize: "12px", color: pass ? "#84cc16" : "rgba(255,255,255,0.3)" }}>
+            <span style={{ fontSize: "12px", color: pass ? "var(--color-accent)" : "rgba(255,255,255,0.3)" }}>
               {pass ? "✓" : "○"}
             </span>
             <span style={{ fontSize: "12px", color: pass ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.3)" }}>
@@ -115,22 +116,22 @@ export default function SetPasswordPage() {
         <div style={{ textAlign: "center", marginBottom: "40px" }}>
           <div style={{
             width: "48px", height: "48px", borderRadius: "12px",
-            background: "linear-gradient(135deg, #84cc16, #65a30d)",
+            background: "linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))",
             display: "flex", alignItems: "center", justifyContent: "center",
-            margin: "0 auto 16px", fontSize: "22px", fontWeight: 900, color: "#0f172a",
+            margin: "0 auto 16px", fontSize: "22px", fontWeight: 900, color: "var(--color-accent-text)",
           }}>O</div>
           <h1 style={{ fontSize: "24px", fontWeight: 700, color: "#fff", marginBottom: "6px" }}>
             Activate your account
           </h1>
           <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.4)" }}>
-            Set a password to complete your O-Bit setup
+            Set a password to complete your {BRAND.name} setup
           </p>
         </div>
 
         <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "16px", padding: "32px" }}>
           {isDone ? (
             <div style={{ textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: "16px" }}>
-              <div style={{ width: "52px", height: "52px", borderRadius: "50%", background: "rgba(132,204,22,0.1)", border: "1px solid rgba(132,204,22,0.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px", color: "#84cc16" }}>✓</div>
+              <div style={{ width: "52px", height: "52px", borderRadius: "50%", background: "var(--color-accent-subtle)", border: "1px solid var(--color-accent-subtle)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px", color: "var(--color-accent)" }}>✓</div>
               <div>
                 <p style={{ fontSize: "16px", fontWeight: 600, color: "#fff", marginBottom: "6px" }}>Password set</p>
                 <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.4)" }}>Redirecting you to sign in...</p>
@@ -150,7 +151,7 @@ export default function SetPasswordPage() {
                     required
                     autoFocus
                     style={{ ...inputStyle, paddingRight: "52px" }}
-                    onFocus={(e) => { e.target.style.borderColor = "#84cc16"; e.target.style.boxShadow = "0 0 0 3px rgba(132,204,22,0.12)"; }}
+                    onFocus={(e) => { e.target.style.borderColor = "var(--color-accent)"; e.target.style.boxShadow = "0 0 0 3px rgba(132,204,22,0.12)"; }}
                     onBlur={(e)  => { e.target.style.borderColor = "rgba(255,255,255,0.1)"; e.target.style.boxShadow = "none"; }}
                   />
                   <button type="button" onClick={() => setShowPw(!showPw)} style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", fontSize: "12px", color: "rgba(255,255,255,0.4)", fontWeight: 500 }}>
@@ -170,7 +171,7 @@ export default function SetPasswordPage() {
                   placeholder="Repeat your password"
                   required
                   style={inputStyle}
-                  onFocus={(e) => { e.target.style.borderColor = "#84cc16"; e.target.style.boxShadow = "0 0 0 3px rgba(132,204,22,0.12)"; }}
+                  onFocus={(e) => { e.target.style.borderColor = "var(--color-accent)"; e.target.style.boxShadow = "0 0 0 3px rgba(132,204,22,0.12)"; }}
                   onBlur={(e)  => { e.target.style.borderColor = "rgba(255,255,255,0.1)"; e.target.style.boxShadow = "none"; }}
                 />
                 {confirmPassword && password !== confirmPassword && (
@@ -191,9 +192,9 @@ export default function SetPasswordPage() {
                 disabled={!isValid || isSubmitting}
                 style={{
                   width: "100%", padding: "12px",
-                  background: isValid && !isSubmitting ? "#84cc16" : "rgba(132,204,22,0.3)",
+                  background: isValid && !isSubmitting ? "var(--color-accent)" : "var(--color-accent-subtle)",
                   border: "none", borderRadius: "8px", fontSize: "14px", fontWeight: 700,
-                  color: "#0f172a", cursor: isValid && !isSubmitting ? "pointer" : "not-allowed",
+                  color: "var(--color-accent-text)", cursor: isValid && !isSubmitting ? "pointer" : "not-allowed",
                 }}
               >
                 {isSubmitting ? "Activating..." : "Activate account"}
@@ -203,7 +204,7 @@ export default function SetPasswordPage() {
         </div>
 
         <p style={{ textAlign: "center", marginTop: "24px", fontSize: "13px", color: "rgba(255,255,255,0.3)" }}>
-          O-Bit Agency Platform
+          {BRAND.name}
         </p>
       </div>
     </div>

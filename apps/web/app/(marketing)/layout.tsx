@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { BRAND } from "@/shared/config/branding.config";
 
 // ─── SHARED NAV ───────────────────────────────────────────────────────────────
 function MarketingNav() {
@@ -30,12 +31,12 @@ function MarketingNav() {
       <Link href="/" style={{ display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}>
         <div style={{
           width: "32px", height: "32px", borderRadius: "8px",
-          background: "linear-gradient(135deg, #84cc16, #65a30d)",
+          background: "linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))",
           display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: "16px", fontWeight: 900, color: "#0a0f1a",
-        }}>K</div>
+          fontSize: "16px", fontWeight: 900, color: "var(--color-accent-text)",
+        }}>{BRAND.logoMark}</div>
         <span style={{ fontSize: "18px", fontWeight: 800, color: "#fff", letterSpacing: "-0.02em" }}>
-          Koveral
+          {BRAND.name}
         </span>
       </Link>
 
@@ -82,8 +83,8 @@ function MarketingNav() {
           Client portal
         </Link>
         <Link href="/intake" style={{
-          padding: "8px 18px", background: "#84cc16", borderRadius: "8px",
-          fontSize: "13px", fontWeight: 700, color: "#0a0f1a",
+          padding: "8px 18px", background: "var(--color-accent)", borderRadius: "8px",
+          fontSize: "13px", fontWeight: 700, color: "var(--color-accent-text)",
           textDecoration: "none", transition: "opacity 0.15s",
         }}
           onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.85")}
@@ -111,12 +112,12 @@ function MarketingFooter() {
         flexWrap: "wrap", gap: "20px",
       }}>
         <Link href="/" style={{ display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}>
-          <div style={{ width: "28px", height: "28px", borderRadius: "6px", background: "linear-gradient(135deg, #84cc16, #65a30d)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px", fontWeight: 900, color: "#0a0f1a" }}>K</div>
-          <span style={{ fontSize: "16px", fontWeight: 800, color: "#fff", letterSpacing: "-0.02em" }}>Koveral</span>
+          <div style={{ width: "28px", height: "28px", borderRadius: "6px", background: "linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px", fontWeight: 900, color: "var(--color-accent-text)" }}>{BRAND.logoMark}</div>
+          <span style={{ fontSize: "16px", fontWeight: 800, color: "#fff", letterSpacing: "-0.02em" }}>{BRAND.name}</span>
         </Link>
 
         <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.2)" }}>
-          © {new Date().getFullYear()} Koveral. Cover all, leave no one behind.
+          © {new Date().getFullYear()} {BRAND.name}. {BRAND.tagline}
         </p>
 
         <div style={{ display: "flex", gap: "24px", flexWrap: "wrap" }}>

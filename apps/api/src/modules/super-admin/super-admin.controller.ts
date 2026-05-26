@@ -74,6 +74,7 @@ export const inviteAdmin = catchAsync(async (req: Request, res: Response) => {
   await prisma.auditLog.create({
     data: { userId: req.user!.userId, action: "ADMIN_INVITED", meta: { email } },
   });
+  req.auditLogged = true;
 
   return res.status(HttpStatus.CREATED).json({
     status:  "success",
@@ -98,8 +99,33 @@ export const removeAdmin = catchAsync(async (req: Request, res: Response) => {
   await prisma.auditLog.create({
     data: { userId: req.user!.userId, action: "ADMIN_REMOVED", meta: { email: admin.email } },
   });
+  req.auditLogged = true;
 
   return res.status(HttpStatus.OK).json({ status: "success", message: "Admin removed" });
+});
+
+// ── Full audit log ─────────────────────────────────────────────────────────────
+
+export const auditLog = catchAsync(async (req: Request, res: Response) => {
+  const page  = Math.max(1, parseInt(req.query.page as string || "1", 10));
+  const limit = 50;
+
+  const [logs, total] = await Promise.all([
+    prisma.auditLog.findMany({
+      orderBy: { createdAt: "desc" },
+      skip:    (page - 1) * limit,
+      take:    limit,
+      include: {
+        user: { select: { email: true, displayName: true, firstName: true, lastName: true, role: true } },
+      },
+    }),
+    prisma.auditLog.count(),
+  ]);
+
+  return res.status(HttpStatus.OK).json({
+    status: "success",
+    data:   { logs, total, page, pages: Math.ceil(total / limit) },
+  });
 });
 
 // ── System settings ────────────────────────────────────────────────────────────

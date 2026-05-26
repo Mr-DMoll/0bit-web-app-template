@@ -165,7 +165,7 @@ export function ProjectRow({
   deadline?: string;
 }) {
   const statusColor =
-    status === "Active"    ? { bg: "rgba(132,204,22,0.1)",  text: "#84cc16" } :
+    status === "Active"    ? { bg: "var(--color-accent-subtle)",  text: "var(--color-accent)" } :
     status === "Review"    ? { bg: "rgba(59,130,246,0.1)",  text: "#3b82f6" } :
     status === "On Hold"   ? { bg: "rgba(245,158,11,0.1)",  text: "#f59e0b" } :
     status === "Complete"  ? { bg: "rgba(34,197,94,0.1)",   text: "#22c55e" } :

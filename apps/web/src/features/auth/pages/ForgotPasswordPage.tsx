@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { authService } from "@/features/auth/services/auth.service";
+import { BRAND } from "@/shared/config/branding.config";
 
 const inputStyle: React.CSSProperties = {
   width: "100%", padding: "11px 14px",
@@ -50,9 +51,9 @@ export default function ForgotPasswordPage() {
         <div style={{ textAlign: "center", marginBottom: "40px" }}>
           <div style={{
             width: "48px", height: "48px", borderRadius: "12px",
-            background: "linear-gradient(135deg, #84cc16, #65a30d)",
+            background: "linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))",
             display: "flex", alignItems: "center", justifyContent: "center",
-            margin: "0 auto 16px", fontSize: "22px", fontWeight: 900, color: "#0f172a",
+            margin: "0 auto 16px", fontSize: "22px", fontWeight: 900, color: "var(--color-accent-text)",
           }}>O</div>
           <h1 style={{ fontSize: "24px", fontWeight: 700, color: "#fff", marginBottom: "6px" }}>
             Reset password
@@ -67,7 +68,7 @@ export default function ForgotPasswordPage() {
             <div style={{ textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: "16px" }}>
               <div style={{
                 width: "52px", height: "52px", borderRadius: "50%",
-                background: "rgba(132,204,22,0.1)", border: "1px solid rgba(132,204,22,0.3)",
+                background: "var(--color-accent-subtle)", border: "1px solid var(--color-accent-subtle)",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 fontSize: "22px",
               }}>
@@ -82,9 +83,9 @@ export default function ForgotPasswordPage() {
               <button
                 onClick={() => router.push("/login")}
                 style={{
-                  width: "100%", padding: "11px", background: "#84cc16", border: "none",
+                  width: "100%", padding: "11px", background: "var(--color-accent)", border: "none",
                   borderRadius: "8px", fontSize: "14px", fontWeight: 700,
-                  color: "#0f172a", cursor: "pointer",
+                  color: "var(--color-accent-text)", cursor: "pointer",
                 }}
               >
                 Back to sign in
@@ -102,7 +103,7 @@ export default function ForgotPasswordPage() {
                   required
                   autoFocus
                   style={inputStyle}
-                  onFocus={(e) => { e.target.style.borderColor = "#84cc16"; e.target.style.boxShadow = "0 0 0 3px rgba(132,204,22,0.12)"; }}
+                  onFocus={(e) => { e.target.style.borderColor = "var(--color-accent)"; e.target.style.boxShadow = "0 0 0 3px rgba(132,204,22,0.12)"; }}
                   onBlur={(e)  => { e.target.style.borderColor = "rgba(255,255,255,0.1)"; e.target.style.boxShadow = "none"; }}
                 />
               </div>
@@ -118,9 +119,9 @@ export default function ForgotPasswordPage() {
                 disabled={isSubmitting}
                 style={{
                   width: "100%", padding: "12px",
-                  background: isSubmitting ? "rgba(132,204,22,0.5)" : "#84cc16",
+                  background: isSubmitting ? "var(--color-accent-subtle)" : "var(--color-accent)",
                   border: "none", borderRadius: "8px", fontSize: "14px", fontWeight: 700,
-                  color: "#0f172a", cursor: isSubmitting ? "not-allowed" : "pointer",
+                  color: "var(--color-accent-text)", cursor: isSubmitting ? "not-allowed" : "pointer",
                 }}
               >
                 {isSubmitting ? "Sending..." : "Send reset link"}
@@ -134,7 +135,7 @@ export default function ForgotPasswordPage() {
         </div>
 
         <p style={{ textAlign: "center", marginTop: "24px", fontSize: "13px", color: "rgba(255,255,255,0.3)" }}>
-          O-Bit Agency Platform
+          {BRAND.name}
         </p>
       </div>
     </div>
