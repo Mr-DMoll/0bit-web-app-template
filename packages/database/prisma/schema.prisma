@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  USER
+}
+
+enum AccountStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  DELETED
+}
+
+enum RegistrationMode {
+  INVITE_ONLY
+  SELF_REGISTER
+  SELF_REGISTER_AUTO
+}
+
+model User {
+  id            String        @id @default(cuid())
+  email         String        @unique
+  password      String
+  role          Role          @default(USER)
+  accountStatus AccountStatus @default(PENDING)
+
+  firstName            String?
+  lastName             String?
+  displayName          String?
+  avatarUrl            String?
+  phone                String?
+  verificationCode     String?
+  verificationExpires  DateTime?
+  passwordResetToken   String?
+  passwordResetExpires DateTime?
+  lastActiveAt         DateTime?
+
+  invitedById String?
+  invitedBy   User?   @relation("UserInvites", fields: [invitedById], references: [id])
+  invitees    User[]  @relation("UserInvites")
+  auditLogs   AuditLog[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+  @@index([role])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action    String
+  meta      Json?
+  ip        String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model SystemSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

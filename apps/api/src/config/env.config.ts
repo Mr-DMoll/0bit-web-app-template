@@ -1,0 +1,49 @@
+import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname  = path.dirname(__filename);
+
+// Walk up to monorepo root to find .env
+dotenv.config({ path: path.resolve(__dirname, "../../../../.env") });
+dotenv.config(); // fallback for production
+
+const env = {
+  NODE_ENV:           process.env.NODE_ENV || "development",
+  PORT:               parseInt(process.env.PORT || "3001", 10),
+  JWT_SECRET:         process.env.JWT_SECRET as string,
+  JWT_EXPIRES_IN:     "7d",
+  BCRYPT_SALT_ROUNDS: 12,
+  DATABASE_URL:       process.env.DATABASE_URL as string,
+  FRONTEND_URL:       process.env.FRONTEND_URL || "http://localhost:3000",
+
+  // Mail — Resend
+  RESEND_API_KEY: process.env.RESEND_API_KEY as string,
+  SENDER_EMAIL:   process.env.SENDER_EMAIL   || "noreply@phoque-orbit.co.za",
+
+  // Anthropic — Claude API for automation workers
+  ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY as string,
+
+  // File storage — Cloudflare R2 (add when ready)
+  R2_ACCOUNT_ID:       process.env.R2_ACCOUNT_ID       as string,
+  R2_ACCESS_KEY_ID:    process.env.R2_ACCESS_KEY_ID    as string,
+  R2_SECRET_ACCESS_KEY: process.env.R2_SECRET_ACCESS_KEY as string,
+  R2_BUCKET_NAME:      process.env.R2_BUCKET_NAME      as string,
+  R2_PUBLIC_URL:       process.env.R2_PUBLIC_URL        as string,
+
+  get isProduction()  { return this.NODE_ENV === "production";  },
+  get isDevelopment() { return this.NODE_ENV === "development"; },
+};
+
+// ── FAIL FAST — crash on startup if critical vars are missing ─────────────────
+const required = ["DATABASE_URL", "JWT_SECRET", "RESEND_API_KEY"];
+
+for (const key of required) {
+  if (!process.env[key]) {
+    console.error(`❌ FATAL: Missing environment variable: ${key}`);
+    process.exit(1);
+  }
+}
+
+export default env;
