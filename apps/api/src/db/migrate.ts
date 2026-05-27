@@ -15,7 +15,7 @@
  */
 
 import pg from "pg";
-import { hash } from "bcryptjs";
+import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -177,7 +177,7 @@ export async function runMigrationsAndSeed(): Promise<void> {
       `SELECT id FROM "User" WHERE role = 'SUPER_ADMIN' LIMIT 1`
     );
     if (existing.rowCount === 0) {
-      const passwordHash = await hash("SuperAdmin123!", 12);
+      const passwordHash = await bcrypt.hash("SuperAdmin123!", 12);
       const id = Math.random().toString(36).slice(2) + Date.now().toString(36);
       await client.query(`
         INSERT INTO "User" (
