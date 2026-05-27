@@ -38,6 +38,9 @@ importers:
       '@repo/types':
         specifier: workspace:*
         version: link:../../packages/types
+      axios:
+        specifier: ^1.15.0
+        version: 1.15.0
       bcryptjs:
         specifier: ^2.4.3
         version: 2.4.3

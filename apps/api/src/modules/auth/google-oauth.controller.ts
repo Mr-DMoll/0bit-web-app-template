@@ -1,10 +1,21 @@
 import { Request, Response } from "express";
+import axios from "axios";
+import https from "node:https";
 import { prisma } from "@repo/database";
 import { HttpStatus } from "@repo/types";
 import { AppError }    from "../../utils/appError.js";
 import { AuthService } from "./auth.service.js";
-import { setAuthCookie } from "../../utils/cookie.util.js";
 import env from "../../config/env.config.js";
+
+// Force IPv4 — WSL2 Happy Eyeballs times out on IPv6 for Google APIs
+const ipv4Agent = new https.Agent({ family: 4 });
+
+const ROLE_ROUTES: Record<string, string> = {
+  SUPER_ADMIN: "/super-admin",
+  ADMIN:       "/admin",
+  MANAGER:     "/manager",
+  USER:        "/user",
+};
 
 const authService = new AuthService();
 
@@ -49,44 +60,32 @@ export async function googleCallback(req: Request, res: Response) {
 
   try {
     // Exchange code for tokens
-    const tokenRes = await fetch(GOOGLE_TOKEN_URL, {
-      method:  "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
+    const tokenRes = await axios.post<{ access_token: string; refresh_token?: string }>(
+      GOOGLE_TOKEN_URL,
+      new URLSearchParams({
         code,
         client_id:     env.GOOGLE_CLIENT_ID,
         client_secret: env.GOOGLE_CLIENT_SECRET,
         redirect_uri:  callbackUrl(),
         grant_type:    "authorization_code",
       }).toString(),
-    });
-
-    if (!tokenRes.ok) {
-      throw new AppError("Failed to exchange Google code", HttpStatus.SERVICE_UNAVAILABLE);
-    }
-
-    const tokens = await tokenRes.json() as {
-      access_token:  string;
-      refresh_token?: string;
-    };
+      { headers: { "Content-Type": "application/x-www-form-urlencoded" }, httpsAgent: ipv4Agent },
+    );
+    const tokens = tokenRes.data;
 
     // Fetch Google user profile
-    const profileRes = await fetch(GOOGLE_USER_URL, {
-      headers: { Authorization: `Bearer ${tokens.access_token}` },
-    });
-
-    if (!profileRes.ok) {
-      throw new AppError("Failed to fetch Google profile", HttpStatus.SERVICE_UNAVAILABLE);
-    }
-
-    const profile = await profileRes.json() as {
+    const profileRes = await axios.get<{
       id:             string;
       email:          string;
       given_name?:    string;
       family_name?:   string;
       picture?:       string;
       verified_email: boolean;
-    };
+    }>(GOOGLE_USER_URL, {
+      headers: { Authorization: `Bearer ${tokens.access_token}` },
+      httpsAgent: ipv4Agent,
+    });
+    const profile = profileRes.data;
 
     if (!profile.email) {
       return res.redirect(`${env.FRONTEND_URL}/login?error=google_no_email`);
@@ -169,10 +168,11 @@ export async function googleCallback(req: Request, res: Response) {
     });
 
     const jwt = authService.generateToken(user.id, user.role);
-    setAuthCookie(res, jwt);
+    const rolePath = ROLE_ROUTES[user.role] ?? "/";
 
-    // Redirect to frontend oauth callback — frontend will read cookie and hydrate
-    res.redirect(`${env.FRONTEND_URL}/oauth/callback`);
+    res.redirect(
+      `${env.FRONTEND_URL}/oauth/callback?token=${jwt}&to=${encodeURIComponent(rolePath)}`
+    );
   } catch (err) {
     console.error("[Google OAuth] callback error:", err);
     res.redirect(`${env.FRONTEND_URL}/login?error=oauth_failed`);

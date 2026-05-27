@@ -73,7 +73,8 @@ export default function LoginPage() {
   };
 
   const handleGoogleSignIn = () => {
-    window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/google`;
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api/v1";
+    window.location.href = `${apiBase}/auth/google`;
   };
 
   return (

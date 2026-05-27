@@ -1,3 +1,11 @@
+process.on("unhandledRejection", (reason: unknown) => {
+  console.error("🔴 [UnhandledRejection]", reason);
+});
+process.on("uncaughtException", (err: Error) => {
+  console.error("🔴 [UncaughtException]", err.message, err.stack);
+  process.exit(1);
+});
+
 import express, { Express, Request, Response } from "express";
 import cors from "cors";
 import helmet from "helmet";

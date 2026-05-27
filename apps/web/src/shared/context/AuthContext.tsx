@@ -22,6 +22,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   setUser: (user: AuthUser | null) => void;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -38,19 +39,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter(); // ← moved inside the component
 
-  useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const response = await authService.getMe();
-        setUser(response.data?.user || null);
-      } catch {
-        setUser(null);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    loadUser();
-  }, []);
+  const loadUser = async () => {
+    try {
+      const response = await authService.getMe();
+      setUser(response.data?.user || null);
+    } catch {
+      setUser(null);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const refreshUser = async () => { await loadUser(); };
+
+  useEffect(() => { loadUser(); }, []);
 
   const login = async (email: string, password: string) => {   
 
@@ -73,7 +75,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, logout, setUser }}>
+    <AuthContext.Provider value={{ user, isLoading, login, logout, setUser, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

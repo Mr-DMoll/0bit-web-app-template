@@ -1,29 +1,17 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/shared/context/AuthContext";
+import { Suspense, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 
-const ROLE_ROUTES: Record<string, string> = {
-  SUPER_ADMIN: "/super-admin",
-  ADMIN:       "/admin",
-  MANAGER:     "/manager",
-  USER:        "/user",
-};
-
-export default function OAuthCallbackPage() {
-  const { user, isLoading } = useAuth();
-  const router = useRouter();
+function OAuthCallbackInner() {
+  const searchParams = useSearchParams();
 
   useEffect(() => {
-    if (!isLoading) {
-      if (user) {
-        router.replace(ROLE_ROUTES[user.role] ?? "/");
-      } else {
-        router.replace("/login?error=oauth_failed");
-      }
-    }
-  }, [user, isLoading, router]);
+    const token = searchParams.get("token");
+    const to    = searchParams.get("to") ?? "/";
+    if (token) localStorage.setItem("auth_token", token);
+    window.location.href = to;
+  }, [searchParams]);
 
   return (
     <div style={{
@@ -31,7 +19,6 @@ export default function OAuthCallbackPage() {
       display: "flex", alignItems: "center", justifyContent: "center",
     }}>
       <div style={{ textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: "16px" }}>
-        {/* Spinner */}
         <div style={{
           width: "40px", height: "40px", borderRadius: "50%",
           border: "3px solid rgba(255,255,255,0.08)",
@@ -44,5 +31,21 @@ export default function OAuthCallbackPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function OAuthCallbackPage() {
+  return (
+    <Suspense fallback={
+      <div style={{
+        minHeight: "calc(100vh - 57px)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        fontSize: "14px", color: "rgba(255,255,255,0.4)",
+      }}>
+        Signing you in...
+      </div>
+    }>
+      <OAuthCallbackInner />
+    </Suspense>
   );
 }
