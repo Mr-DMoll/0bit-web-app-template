@@ -1,15 +1,24 @@
 import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-const FROM   = process.env.SENDER_EMAIL || "noreply@example.com";
-const APP    = process.env.APP_NAME     || "My App";
+const FROM   = `${process.env.EMAIL_FROM_NAME || "The 0-Bit Platform Team"} <${process.env.SENDER_EMAIL || "noreply@phoque-orbit.co.za"}>`;
+const APP    = process.env.APP_NAME || "My App";
+
+async function send(payload: Parameters<typeof resend.emails.send>[0]) {
+  const { data, error } = await resend.emails.send(payload);
+  if (error) {
+    console.error("❌ [MAIL] Resend error:", error);
+    throw new Error(`Failed to send email: ${error.message}`);
+  }
+  console.log(`✅ [MAIL] Sent to ${Array.isArray(payload.to) ? payload.to.join(", ") : payload.to} (id: ${data?.id})`);
+}
 
 // ── Invite email ───────────────────────────────────────────────────────────────
 
 export async function sendInviteEmail(
   to: string, inviteLink: string, name: string
 ) {
-  await resend.emails.send({
+  await send({
     from:    FROM,
     to,
     subject: `You've been invited to ${APP}`,
@@ -32,7 +41,7 @@ export async function sendInviteEmail(
 export async function sendVerificationEmail(
   to: string, verifyLink: string
 ) {
-  await resend.emails.send({
+  await send({
     from:    FROM,
     to,
     subject: `Verify your ${APP} account`,
@@ -53,7 +62,7 @@ export async function sendVerificationEmail(
 export async function sendPasswordResetEmail(
   to: string, resetLink: string
 ) {
-  await resend.emails.send({
+  await send({
     from:    FROM,
     to,
     subject: `Reset your ${APP} password`,
@@ -75,7 +84,7 @@ export async function sendPasswordResetEmail(
 export async function sendVerificationCodeEmail(
   to: string, code: string
 ) {
-  await resend.emails.send({
+  await send({
     from:    FROM,
     to,
     subject: `Your ${APP} verification code`,
