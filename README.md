@@ -56,23 +56,7 @@ SENDER_EMAIL=noreply@yourdomain.com
 ANTHROPIC_API_KEY=sk-ant-...
 ```
 
-### 3. Set up database
-
-```bash
-# Push schema to Supabase
-pnpm --filter @repo/database run db:push
-
-# Seed super admin
-pnpm --filter @repo/database run seed
-```
-
-Default super admin credentials:
-- Email: `superadmin@example.com`
-- Password: `SuperAdmin123!`
-
-⚠️ **Change this password immediately after first login.**
-
-### 4. Start development
+### 3. Start development
 
 ```bash
 pnpm dev
@@ -80,6 +64,14 @@ pnpm dev
 
 - Frontend: http://localhost:3000
 - API: http://localhost:3001
+
+> The API automatically creates the database schema and seeds the super admin on first start — no manual migration steps needed.
+
+Default super admin credentials:
+- Email: `superadmin@example.com`
+- Password: `SuperAdmin123!`
+
+⚠️ **Change this password immediately after first login.**
 
 ## Project Structure
 
