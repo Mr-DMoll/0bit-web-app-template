@@ -12,6 +12,7 @@ import helmet from "helmet";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
 
+import { runMigrationsAndSeed } from "./db/migrate.js";
 import { globalErrorHandler }  from "./middleware/error.middleware.js";
 import { authRateLimiter }     from "./middleware/security.middleware.js";
 import { auditLog }            from "./middleware/audit.middleware.js";
@@ -88,12 +89,17 @@ app.use(globalErrorHandler);
 
 // ── 8. START ──────────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
-  console.log(`\n─────────────────────────────────────────`);
-  console.log(`🚀  API RUNNING`);
-  console.log(`🌍  MODE:   ${process.env.NODE_ENV || "development"}`);
-  console.log(`🔗  URL:    http://localhost:${PORT}${API}`);
-  console.log(`─────────────────────────────────────────\n`);
-});
+
+(async () => {
+  await runMigrationsAndSeed();
+
+  app.listen(PORT, () => {
+    console.log(`\n─────────────────────────────────────────`);
+    console.log(`🚀  API RUNNING`);
+    console.log(`🌍  MODE:   ${process.env.NODE_ENV || "development"}`);
+    console.log(`🔗  URL:    http://localhost:${PORT}${API}`);
+    console.log(`─────────────────────────────────────────\n`);
+  });
+})();
 
 export default app;
