@@ -7,17 +7,20 @@ import { AuthService } from "../auth/auth.service.js";
 
 const authService = new AuthService();
 
+const PROFILE_SELECT = {
+  id: true, email: true, role: true, accountStatus: true,
+  firstName: true, lastName: true, displayName: true,
+  avatarUrl: true, phone: true,
+  city: true, country: true, language: true, dateOfBirth: true,
+  lastActiveAt: true, createdAt: true,
+} as const;
+
 // ── Get profile ────────────────────────────────────────────────────────────────
 
 export const getProfile = catchAsync(async (req: Request, res: Response) => {
   const user = await prisma.user.findUnique({
     where:  { id: req.user!.userId },
-    select: {
-      id: true, email: true, role: true, accountStatus: true,
-      firstName: true, lastName: true, displayName: true,
-      avatarUrl: true, phone: true, lastActiveAt: true,
-      createdAt: true,
-    },
+    select: PROFILE_SELECT,
   });
   if (!user) throw new AppError("User not found", HttpStatus.NOT_FOUND);
   return res.status(HttpStatus.OK).json({ status: "success", data: { user } });
@@ -26,7 +29,7 @@ export const getProfile = catchAsync(async (req: Request, res: Response) => {
 // ── Update profile ─────────────────────────────────────────────────────────────
 
 export const updateProfile = catchAsync(async (req: Request, res: Response) => {
-  const { firstName, lastName, displayName, avatarUrl, phone } = req.body;
+  const { firstName, lastName, displayName, avatarUrl, phone, city, country, language, dateOfBirth } = req.body;
 
   const user = await prisma.user.update({
     where: { id: req.user!.userId },
@@ -36,12 +39,12 @@ export const updateProfile = catchAsync(async (req: Request, res: Response) => {
       displayName: displayName ?? undefined,
       avatarUrl:   avatarUrl   ?? undefined,
       phone:       phone       ?? undefined,
+      city:        city        ?? undefined,
+      country:     country     ?? undefined,
+      language:    language    ?? undefined,
+      dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : undefined,
     },
-    select: {
-      id: true, email: true, role: true,
-      firstName: true, lastName: true, displayName: true,
-      avatarUrl: true, phone: true,
-    },
+    select: PROFILE_SELECT,
   });
 
   return res.status(HttpStatus.OK).json({ status: "success", data: { user } });
