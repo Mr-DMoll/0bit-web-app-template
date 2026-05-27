@@ -1,4 +1,4 @@
-# Koveral Template
+# 0bit Template
 
 A full-stack monorepo template by Koveral. Ships with auth, role-based access, super admin and admin dashboards — ready to extend.
 
