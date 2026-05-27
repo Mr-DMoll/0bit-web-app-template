@@ -15,9 +15,8 @@ const ROLE_ROUTES: Record<string, string> = {
 
 const OAUTH_ERRORS: Record<string, string> = {
   google_denied:  "Google sign-in was cancelled.",
-  invite_only:    "Registration is by invitation only. Please contact an admin.",
   suspended:      "Your account has been suspended. Please contact support.",
-  not_found:      "No account found. Please request an invite.",
+  not_found:      "No account found. Please contact support.",
   oauth_failed:   "Google sign-in failed. Please try again.",
 };
 
@@ -232,12 +231,9 @@ export default function LoginPage() {
           </form>
         </div>
 
-        {/* Register link */}
+        {/* Register hint */}
         <p style={{ textAlign: "center", marginTop: "20px", fontSize: "13px", color: "rgba(255,255,255,0.3)" }}>
-          Don't have an account?{" "}
-          <Link href="/register" style={{ color: "var(--color-accent)", textDecoration: "none" }}>
-            Sign up
-          </Link>
+          New here? Sign in with Google above to create an account.
         </p>
       </div>
     </div>

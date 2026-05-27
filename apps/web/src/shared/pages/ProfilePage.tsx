@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/shared/context/AuthContext";
 import apiClient from "@/api/client";
 import { endpoints } from "@/api/endpoints";
@@ -179,17 +179,22 @@ export function ProfilePage() {
   const [success, setSuccess]   = useState(false);
   const [error,   setError]     = useState<string | null>(null);
 
-  const [form, setForm] = useState({
-    firstName:   user?.firstName   ?? "",
-    lastName:    user?.lastName    ?? "",
-    displayName: user?.displayName ?? "",
-    city:        (user as any)?.city        ?? "",
-    country:     (user as any)?.country     ?? "",
-    language:    (user as any)?.language    ?? "",
-    dateOfBirth: (user as any)?.dateOfBirth
-      ? new Date((user as any).dateOfBirth).toISOString().split("T")[0]
+  const buildForm = (u: typeof user) => ({
+    firstName:   u?.firstName   ?? "",
+    lastName:    u?.lastName    ?? "",
+    displayName: u?.displayName ?? "",
+    city:        u?.city        ?? "",
+    country:     u?.country     ?? "",
+    language:    u?.language    ?? "",
+    dateOfBirth: u?.dateOfBirth
+      ? new Date(u.dateOfBirth).toISOString().split("T")[0]
       : "",
   });
+
+  const [form, setForm] = useState(() => buildForm(user));
+
+  // Sync form when user data loads (guard renders before getMe resolves)
+  useEffect(() => { setForm(buildForm(user)); }, [user?.id]);
 
   const handleChange = (name: string, value: string) => {
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -211,17 +216,7 @@ export function ProfilePage() {
   };
 
   const handleCancel = () => {
-    setForm({
-      firstName:   user?.firstName   ?? "",
-      lastName:    user?.lastName    ?? "",
-      displayName: user?.displayName ?? "",
-      city:        (user as any)?.city        ?? "",
-      country:     (user as any)?.country     ?? "",
-      language:    (user as any)?.language    ?? "",
-      dateOfBirth: (user as any)?.dateOfBirth
-        ? new Date((user as any).dateOfBirth).toISOString().split("T")[0]
-        : "",
-    });
+    setForm(buildForm(user));
     setEditing(false);
   };
 
@@ -318,18 +313,18 @@ export function ProfilePage() {
             <span style={{
               display: "inline-block", padding: "2px 10px", borderRadius: "999px",
               fontSize: "11px", fontWeight: 500,
-              background: (user as any)?.accountStatus === "ACTIVE" ? "rgba(34,197,94,0.1)" : "rgba(245,158,11,0.1)",
-              color: (user as any)?.accountStatus === "ACTIVE" ? "#22c55e" : "#f59e0b",
-              border: `1px solid ${(user as any)?.accountStatus === "ACTIVE" ? "rgba(34,197,94,0.2)" : "rgba(245,158,11,0.2)"}`,
+              background: user?.accountStatus === "ACTIVE" ? "rgba(34,197,94,0.1)" : "rgba(245,158,11,0.1)",
+              color: user?.accountStatus === "ACTIVE" ? "#22c55e" : "#f59e0b",
+              border: `1px solid ${user?.accountStatus === "ACTIVE" ? "rgba(34,197,94,0.2)" : "rgba(245,158,11,0.2)"}`,
             }}>
-              {(user as any)?.accountStatus ?? "—"}
+              {user?.accountStatus ?? "—"}
             </span>
           </div>
           <div>
             <p style={{ fontSize: "11px", fontWeight: 600, color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "5px" }}>Member Since</p>
             <p style={{ fontSize: "13px", color: "var(--color-text-primary)" }}>
-              {(user as any)?.createdAt
-                ? new Date((user as any).createdAt).toLocaleDateString("en-ZA", { day: "numeric", month: "long", year: "numeric" })
+              {user?.createdAt
+                ? new Date(user.createdAt).toLocaleDateString("en-ZA", { day: "numeric", month: "long", year: "numeric" })
                 : "—"}
             </p>
           </div>

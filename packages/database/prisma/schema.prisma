@@ -45,6 +45,11 @@ model User {
   passwordResetExpires DateTime?
   lastActiveAt         DateTime?
 
+  city        String?
+  country     String?
+  language    String?
+  dateOfBirth DateTime?
+
   googleId           String?   @unique
   googleRefreshToken String?
 

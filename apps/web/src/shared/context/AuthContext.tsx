@@ -13,7 +13,13 @@ export interface AuthUser {
   lastName?: string | null;
   displayName?: string | null;
   avatarUrl?: string | null;
+  phone?: string | null;
+  city?: string | null;
+  country?: string | null;
+  language?: string | null;
+  dateOfBirth?: string | null;
   accountStatus: string;
+  createdAt?: string | null;
 }
 
 interface AuthContextType {

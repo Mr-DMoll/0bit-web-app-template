@@ -62,9 +62,11 @@ export const getMe = catchAsync(async (req: Request, res: Response) => {
   const user = await prisma.user.findUnique({
     where:  { id: req.user!.userId },
     select: {
-      id: true, email: true, role: true,
+      id: true, email: true, role: true, accountStatus: true,
       firstName: true, lastName: true, displayName: true,
-      avatarUrl: true, accountStatus: true, lastActiveAt: true,
+      avatarUrl: true, phone: true,
+      // city, country, language, dateOfBirth added after migration
+      lastActiveAt: true, createdAt: true,
     },
   });
   if (!user) throw new AppError("User not found", HttpStatus.NOT_FOUND);

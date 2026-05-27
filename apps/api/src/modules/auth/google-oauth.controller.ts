@@ -113,16 +113,7 @@ export async function googleCallback(req: Request, res: Response) {
           },
         });
       } else {
-        // Brand-new user via Google — only allowed if registration is open
-        const setting = await prisma.systemSetting.findUnique({
-          where: { key: "registration_mode" },
-        });
-        const mode = setting?.value ?? "INVITE_ONLY";
-
-        if (mode === "INVITE_ONLY") {
-          return res.redirect(`${env.FRONTEND_URL}/login?error=invite_only`);
-        }
-
+        // Brand-new user via Google — always allowed with USER role
         user = await prisma.user.create({
           data: {
             email:              profile.email.toLowerCase(),
