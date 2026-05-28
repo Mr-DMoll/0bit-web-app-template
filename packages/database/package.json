@@ -15,7 +15,7 @@
     "generate": "prisma generate",
     "db:push": "prisma db push",
     "migrate:dev": "prisma migrate dev",
-    "build": "pnpm run generate && tsc && cp -r generated dist/",
+    "build": "pnpm run generate && tsc && node -e \"const{cpSync}=require('fs');cpSync('generated','dist/generated',{recursive:true})\"",
     "seed": "tsx prisma/seed.ts"
   
   },
