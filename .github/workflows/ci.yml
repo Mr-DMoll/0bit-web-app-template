@@ -7,36 +7,62 @@ on:
     branches: [main, develop]
 
 jobs:
-  ci:
-    name: Type Check & Build
+  # ── Shared setup step (install once, both jobs use the cache) ──────────────
+  install:
+    name: Install Dependencies
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4   # reads version from packageManager in package.json
+      - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
+      - run: pnpm install --frozen-lockfile
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+  # ── Web (Next.js) ──────────────────────────────────────────────────────────
+  web:
+    name: Web — Type Check & Build
+    runs-on: ubuntu-latest
+    needs: install
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
 
-      - name: Type check
-        run: pnpm check-types
+      - name: Type check (web)
+        run: pnpm --filter web check-types
 
-      - name: Build
-        run: pnpm build
+      - name: Build web
+        run: pnpm --filter web build
         env:
-          # Real secrets from GitHub repo Settings → Secrets → Actions
-          # Add these once per project — they are used for type check and build verification
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+
+  # ── API (Node.js / Express) ────────────────────────────────────────────────
+  api:
+    name: API — Type Check & Build
+    runs-on: ubuntu-latest
+    needs: install
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      - name: Type check (api)
+        run: pnpm --filter @repo/api check-types
+
+      - name: Build api
+        run: pnpm --filter @repo/api build
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
