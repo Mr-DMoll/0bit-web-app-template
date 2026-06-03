@@ -35,7 +35,8 @@ jobs:
       - name: Build
         run: pnpm build
         env:
-          # Dummy values so Next.js builds without real secrets
-          DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/placeholder
-          JWT_SECRET: ci-placeholder-secret-not-used-in-build
-          NEXT_PUBLIC_API_URL: http://localhost:3001/api/v1
+          # Real secrets from GitHub repo Settings → Secrets → Actions
+          # Add these once per project — they are used for type check and build verification
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
