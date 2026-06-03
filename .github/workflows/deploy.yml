@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true  # opt into Node.js 24 now, removes deprecation warnings
+
 jobs:
   deploy-web:
     name: Deploy Web → Vercel

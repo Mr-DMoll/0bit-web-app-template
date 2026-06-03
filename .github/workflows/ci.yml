@@ -11,6 +11,7 @@ env:
   DATABASE_URL: ${{ secrets.DATABASE_URL }}
   JWT_SECRET: ${{ secrets.JWT_SECRET }}
   NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true  # opt into Node.js 24 now, removes deprecation warnings
 
 jobs:
   # ── Step 1: Install + build shared workspace packages ─────────────────────
