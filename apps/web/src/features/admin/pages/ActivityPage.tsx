@@ -291,7 +291,7 @@ export function AdminActivityPage() {
                 {dayLogs.map((log, i) => {
                   const { label, detail } = formatAction(log.action, log.meta);
                   const dotColor  = ACTION_COLOR[log.action]  ?? "#94a3b8";
-                  const roleColor = ROLE_COLOR[log.user?.role] ?? "#94a3b8";
+                  const roleColor = ROLE_COLOR[log.user?.role ?? ""] ?? "#94a3b8";
                   return (
                     <div key={log.id} style={{ display: "flex", alignItems: "flex-start", gap: "14px", padding: "13px 20px", borderBottom: i < dayLogs.length - 1 ? "1px solid var(--color-border)" : "none" }}>
                       <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: dotColor, flexShrink: 0, marginTop: "5px" }} />
