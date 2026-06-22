@@ -1,0 +1,113 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+# Shared setup used by all jobs
+env:
+  DATABASE_URL: ${{ secrets.DATABASE_URL }}
+  JWT_SECRET: ${{ secrets.JWT_SECRET }}
+  NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true  # opt into Node.js 24 now, removes deprecation warnings
+
+jobs:
+  # ── Step 1: Install + build shared workspace packages ─────────────────────
+  packages:
+    name: Build Workspace Packages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4   # reads version from packageManager in package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build @repo/types
+        run: pnpm --filter @repo/types build
+
+      - name: Generate Prisma + build @repo/database
+        run: pnpm --filter @repo/database build
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      # Cache the built packages so Web and API jobs can use them
+      - name: Cache built packages
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            packages/types/dist
+            packages/database/dist
+            packages/database/generated
+            node_modules
+            apps/web/node_modules
+            apps/api/node_modules
+          key: packages-${{ github.sha }}
+
+  # ── Step 2a: Web (Next.js) — runs after packages ──────────────────────────
+  web:
+    name: Web — Type Check & Build
+    runs-on: ubuntu-latest
+    needs: packages
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Restore built packages
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            packages/types/dist
+            packages/database/dist
+            packages/database/generated
+            node_modules
+            apps/web/node_modules
+            apps/api/node_modules
+          key: packages-${{ github.sha }}
+
+      - name: Type check (web)
+        run: pnpm --filter web check-types
+
+      - name: Build web
+        run: pnpm --filter web build
+
+  # ── Step 2b: API (Node/Express) — runs after packages ─────────────────────
+  api:
+    name: API — Type Check & Build
+    runs-on: ubuntu-latest
+    needs: packages
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Restore built packages
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            packages/types/dist
+            packages/database/dist
+            packages/database/generated
+            node_modules
+            apps/web/node_modules
+            apps/api/node_modules
+          key: packages-${{ github.sha }}
+
+      - name: Type check (api)
+        run: pnpm --filter @repo/api check-types
+
+      - name: Build api
+        run: pnpm --filter @repo/api build
